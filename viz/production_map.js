@@ -9,7 +9,7 @@ var svg = d3.select("#my_map")
 
 // Map and projection
 var projection = d3.geoAlbersUsa()
-    .scale(2250)
+    .scale(2500)
     .translate([400, 450]);
 
 var path = d3.geoPath().projection(projection);
@@ -137,6 +137,57 @@ function drawBaseLayers(statesData, countiesData, USAData) {
         .attr("stroke-width", 3)
         .attr("d", path);
 }
+
+let infoBox = svg.append("g")
+    .attr("class", "info-box")
+    .attr("transform", "translate(0, 0)");
+
+infoBox.append("rect")
+    .attr("x", width - 220)
+    .attr("y", height - 120)
+    .attr("width", 200)
+    .attr("height", 100)
+    .attr("fill", "rgba(255, 255, 255, 0.9)")
+    .attr("stroke", "black")
+    .attr("stroke-width", 1);
+
+let countyInfoText = infoBox.append("text")
+    .attr("x", width - 210)
+    .attr("y", height - 100)
+    .attr("font-size", "12px")
+    .attr("fill", "black")
+    .style("pointer-events", "none")
+    .style("font-family", "Arial, sans-serif");
+
+// Update the information box with proper line breaks
+function updateInfoBox(countyName, year, production) {
+    countyInfoText
+        .selectAll("*").remove();  // Remove any existing text
+    
+        // Append the title
+    countyInfoText.append("tspan")
+        .attr("x", width - 210)
+        .attr("dy", "0em")  // Line spacing
+        .attr("font-size", "16px")
+        .attr("font-weight", "bold")  // Make the title bold
+        .text("County Info");
+
+    countyInfoText.append("tspan")
+        .attr("x", width - 210)
+        .attr("dy", "1.2em")  // Line spacing
+        .text(`County: ${countyName}`);
+
+    countyInfoText.append("tspan")
+        .attr("x", width - 210)
+        .attr("dy", "1.2em")  // Line spacing
+        .text(`Year: ${year}`);
+
+    countyInfoText.append("tspan")
+        .attr("x", width - 210)
+        .attr("dy", "1.2em")  // Line spacing
+        .text(`5-Year Avg: ${production}`);
+}
+
 let lastClickedCounty = null;  // Store the last clicked county
 
 function updateMap(selectedYear) {
@@ -171,13 +222,25 @@ function updateMap(selectedYear) {
                 // Reset the border of the previously clicked county
                 if (lastClickedCounty) {
                     lastClickedCounty.style("stroke", null).style("stroke-width", null);
+                    lastClickedCounty.style("fill", null);
+
                 }
 
                 // Set the border color to orange on the clicked county
                 d3.select(this).style("stroke", "orange").style("stroke-width", 3);
+                d3.select(this).style("fill", "orange");
 
                 // Store the current clicked county
                 lastClickedCounty = d3.select(this);
+
+                // Update the information box (text inside the SVG)
+                const countyName = d.properties.id || 'No name available';
+                const year = d.properties.Year || 'No year available';
+                const production = d.properties.fiveyr_rolling_avg || 'No data available';
+
+                // Update the information box (text inside the SVG or div)
+                updateInfoBox(countyName, year, production)
+
 
                 // Optionally, you could zoom to the clicked county (if desired)
                 zoomToCounty(event, d);
@@ -213,7 +276,7 @@ function zoomToCounty(event, d) {
     const width = svg.node().getBoundingClientRect().width; // Get SVG dimensions
     const height = svg.node().getBoundingClientRect().height;
 
-    const scale = Math.min(4, 0.9 / Math.max((x1 - x0) / width, (y1 - y0) / height)); // Scale factor
+    const scale = Math.min(2, 0.9 / Math.max((x1 - x0) / width, (y1 - y0) / height)); // Scale factor
     const translate = [(width - scale * (x0 + x1)) / 2, (height - scale * (y0 + y1)) / 2]; // Center translation
 
     svg.transition()
@@ -298,7 +361,6 @@ function createVerticalLegend() {
 
 // Call the createVerticalLegend function after the map is initialized
 createVerticalLegend();
-
 
 
 
