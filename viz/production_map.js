@@ -87,7 +87,9 @@ Promise.all([
                 // Move to the next year
                 currentYearIndex++;
                 if (currentYearIndex >= years.length) {
-                    currentYearIndex = 0; // Loop back to the start
+                    clearInterval(playInterval);
+                    playInterval = null;
+                    d3.select("#playPause").text("Play");
                 }
             }, 500); // Update every second (1000 ms)
             this.textContent = "Pause";  // Change button text to Pause
@@ -122,6 +124,7 @@ function drawBaseLayers(statesData, countiesData) {
         .attr("stroke-width", 3)
         .attr("d", path);
 }
+
 function updateMap(selectedYear) {
     // Load the GeoJSON file for the selected year
     const fileName = `output_data/output_${selectedYear}.geojson`;
@@ -141,7 +144,8 @@ function updateMap(selectedYear) {
             );
 
         // Add new paths (if any)
-        paths.enter().append("path")
+        paths.enter()
+            .append("path")
             .attr("fill", "grey") // Start with a neutral color for fade-in effect
             .attr("d", path)
             .style("opacity", 0) // Initially invisible
@@ -149,7 +153,8 @@ function updateMap(selectedYear) {
             .duration(750)
             .style("opacity", 1) // Fade in
             .attr("fill", d => colorScale(d.properties.fiveyr_rolling_avg))
-            .append("title")
+            .selection() // End the transition to allow appending
+            .append("title") // Append title to the path elements
             .text(d => 
                 `County ID: ${d.properties.id}\nYear: ${d.properties.Year}\nProduction: ${d.properties.fiveyr_rolling_avg}`
             );
@@ -164,3 +169,4 @@ function updateMap(selectedYear) {
         console.error("Error loading the GeoJSON file:", error);
     });
 }
+
