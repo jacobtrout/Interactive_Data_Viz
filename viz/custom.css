@@ -1,0 +1,45 @@
+#pyramids {
+  width: 700px;
+}
+.inverted {
+  background-color: #ffffee;
+  padding: 3px;
+}
+body {
+  background-color: #333333;
+  color: #ffffee;
+}
+h3.subtitle {
+  color: rgb(253, 141, 60);
+  text-align: center;
+}
+a {
+  color: rgb(253, 141, 60);
+}
+a:hover {
+  text-decoration: underline;
+}
+#pyramidControls {
+  display: grid;
+  grid-template-columns: 1fr 9fr;
+}
+
+
+#legend-container {
+  margin-left: 20px;  /* Space between the map and the legend */
+  width: 250px;       /* Width of the legend */
+}
+
+
+
+#legend {
+  width: 200px;       /* Adjust the legend size */
+  height: auto;       /* Allow the legend to scale vertically */
+}
+
+#countyInfoText {
+  white-space: pre-line;
+  word-wrap: break-word;
+  font-family: Arial, sans-serif;
+  line-height: 1.5;
+}

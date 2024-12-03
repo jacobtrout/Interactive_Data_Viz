@@ -16,4 +16,11 @@ __pycache__/
 Thumbs.db
 
 # viz stuff
-viz/output_data
+viz/testing
+
+# data
+data/output_data
+data/field_crops.db
+data/testing.ipynb
+
+
