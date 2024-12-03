@@ -161,6 +161,8 @@ corn_df.to_csv("test.csv", index=False)
 # Annnual Corn Production since 1975
 query = f"""
 Select 
+    state_name,
+    county_name,
     year,
     value AS annual_production,
     state_ansi|| county_ansi as id
@@ -193,7 +195,7 @@ full_data = all_combinations.merge(ann_prod_corn, on=["id", "Year"], how="left")
 full_data["fiveyr_rolling_avg"] = (
     full_data.sort_values(by=["id", "Year"])
     .groupby("id")["annual_production"]
-    .rolling(window=5, min_periods=1)  # Allows partial windows
+    .rolling(window=5, min_periods=1)
     .mean()
     .reset_index(level=0, drop=True)
 )
@@ -207,13 +209,22 @@ merged = gpd.GeoDataFrame(
 )
 
 output_df = merged[
-    ["id", "Year", "annual_production", "fiveyr_rolling_avg", "geometry"]
+    [
+        "id",
+        "state_name",
+        "county_name",
+        "Year",
+        "annual_production",
+        "fiveyr_rolling_avg",
+        "geometry",
+    ]
 ]
 output_df = output_df[output_df["Year"] >= 1980]
+# output_df = output_df[~output_df["fiveyr_rolling_avg"].isna()]
 
 output_df.set_crs("EPSG:4326", inplace=True)
 
-output_df.to_file("output_data.geojson", driver="GeoJSON")
+# output_df.to_file("output_data.geojson", driver="GeoJSON")
 output_dir = "output_data"
 os.makedirs(output_dir, exist_ok=True)
 for year in output_df["Year"].unique():
@@ -221,11 +232,15 @@ for year in output_df["Year"].unique():
     year_filename = os.path.join(output_dir, f"output_{year}.geojson")
     year_df.to_file(year_filename, driver="GeoJSON")
 
-
+midwest_counties_gdf.set_crs("EPSG:4326", inplace=True)
 midwest_counties_gdf.to_file("counties.geojson", driver="GeoJSON")
 print(states_gdf.dtypes)
 midwest_states_gdf = states_gdf[states_gdf["id"].astype(int).isin(midwestern_state_ids)]
 
 print(midwest_states_gdf.head())
 # midwest_states_gdf = load_midwest_counties(db_name, crop_table, counties_gdf)
+midwest_states_gdf.set_crs("EPSG:4326", inplace=True)
 midwest_states_gdf.to_file("states.geojson", driver="GeoJSON")
+
+states_gdf.set_crs("EPSG:4326", inplace=True)
+states_gdf.to_file("all_states.geojson", driver="GeoJSON")
