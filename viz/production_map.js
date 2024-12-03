@@ -1,5 +1,5 @@
-const width = 1000;
-const height = 600;
+const width = 1200;
+const height = 800;
 
 var svg = d3.select("#my_map")
     .attr("width", width)
@@ -10,7 +10,7 @@ var svg = d3.select("#my_map")
 // Map and projection
 var projection = d3.geoAlbersUsa()
     .scale(2500)
-    .translate([400, 450]);
+    .translate([500, 500]);
 
 var path = d3.geoPath().projection(projection);
 
@@ -31,9 +31,9 @@ let years = [];
 
 // Load the state and county boundary data
 Promise.all([
-    d3.json("states.geojson"), // Load state boundaries GeoJSON
-    d3.json("counties.geojson"), // Load county boundaries GeoJSON
-    d3.json("all_states.geojson"),
+    d3.json("backgrounds/states.geojson"), // Load state boundaries GeoJSON
+    d3.json("backgrounds/counties.geojson"), // Load county boundaries GeoJSON
+    d3.json("backgrounds/all_states.geojson"),
     d3.json("output_data/output_1980.geojson") // Load data for the first year
 ]).then(([statesData, countiesData, USAData, data]) => {
     geojsonData = data; // Store the full data for later use
@@ -101,7 +101,7 @@ Promise.all([
 
 // Function to draw the base layers on the map
 function drawBaseLayers(statesData, countiesData, USAData) {
-
+ 
     // 1. Add the USA-wide map as the base layer
     baseCountiesGroup.selectAll("path.usa")
         .data(USAData.features)
@@ -112,13 +112,14 @@ function drawBaseLayers(statesData, countiesData, USAData) {
         .attr("stroke-width", 1)
         .attr("d", path);
 
+/*
     // Draw base light grey filled counties
     baseCountiesGroup.selectAll("path")
         .data(countiesData.features)
         .enter().append("path")
-        .attr("fill", "grey")  // Light grey fill
-        .attr("d", path);
-
+        .attr("fill", "white")  // Light grey fill
+        .attr("d", path); 
+*/
     // Draw county boundaries
     countiesGroup.selectAll("path")
         .data(countiesData.features)
@@ -160,7 +161,7 @@ let countyInfoText = infoBox.append("text")
     .style("font-family", "Arial, sans-serif");
 
 // Update the information box with proper line breaks
-function updateInfoBox(countyName, year, production) {
+function updateInfoBox(countyName, stateName, year, production) {
     countyInfoText
         .selectAll("*").remove();  // Remove any existing text
     
@@ -174,18 +175,23 @@ function updateInfoBox(countyName, year, production) {
 
     countyInfoText.append("tspan")
         .attr("x", width - 210)
-        .attr("dy", "1.2em")  // Line spacing
+        .attr("dy", "1.4em")  // Line spacing
         .text(`County: ${countyName}`);
 
     countyInfoText.append("tspan")
         .attr("x", width - 210)
-        .attr("dy", "1.2em")  // Line spacing
+        .attr("dy", "1.4em")  // Line spacing
+        .text(`State: ${stateName}`);
+
+    countyInfoText.append("tspan")
+        .attr("x", width - 210)
+        .attr("dy", "1.4em")  // Line spacing
         .text(`Year: ${year}`);
 
     countyInfoText.append("tspan")
         .attr("x", width - 210)
-        .attr("dy", "1.2em")  // Line spacing
-        .text(`5-Year Avg: ${production}`);
+        .attr("dy", "1.4em")  // Line spacing
+        .text(`5-Year Avg Prod: ${production}`);
 }
 
 let lastClickedCounty = null;  // Store the last clicked county
@@ -205,12 +211,9 @@ function updateMap(selectedYear) {
             .attr("fill", d => {
                 // Check if fiveyr_rolling_avg exists and is a valid number
                 const avg = d.properties.fiveyr_rolling_avg;
-                return avg !== null && avg !== undefined ? colorScale(avg) : "grey"; // If no data, grey
+                return avg !== null && avg !== undefined ? colorScale(avg) : "white"; // If no data, grey
             })
-            .select("title")
-            .text(d => 
-                `County ID: ${d.properties.id}\nYear: ${d.properties.Year}\nProduction: ${d.properties.fiveyr_rolling_avg || 'No Data'}`
-            );
+
 
         // Add new paths (if any)
         paths.enter()
@@ -223,7 +226,6 @@ function updateMap(selectedYear) {
                 if (lastClickedCounty) {
                     lastClickedCounty.style("stroke", null).style("stroke-width", null);
                     lastClickedCounty.style("fill", null);
-
                 }
 
                 // Set the border color to orange on the clicked county
@@ -234,12 +236,13 @@ function updateMap(selectedYear) {
                 lastClickedCounty = d3.select(this);
 
                 // Update the information box (text inside the SVG)
-                const countyName = d.properties.id || 'No name available';
+                const countyName = d.properties.county_name || 'No name available';
+                const stateName = d.properties.state_name || 'No state available';
                 const year = d.properties.Year || 'No year available';
                 const production = d.properties.fiveyr_rolling_avg || 'No data available';
 
                 // Update the information box (text inside the SVG or div)
-                updateInfoBox(countyName, year, production)
+                updateInfoBox(countyName, stateName, year, production)
 
 
                 // Optionally, you could zoom to the clicked county (if desired)
@@ -251,13 +254,8 @@ function updateMap(selectedYear) {
             .attr("fill", d => {
                 // Check if fiveyr_rolling_avg exists and is a valid number
                 const avg = d.properties.fiveyr_rolling_avg;
-                return avg !== null && avg !== undefined ? colorScale(avg) : "grey"; // If no data, grey
-            })
-            .selection() // End the transition to allow appending
-            .append("title") // Append title to the path elements
-            .text(d => 
-                `County ID: ${d.properties.id}\nYear: ${d.properties.Year}\nProduction: ${d.properties.fiveyr_rolling_avg || 'No Data'}`
-            );
+                return avg !== null && avg !== undefined ? colorScale(avg) : "white"; // If no data, grey
+            });
 
         // Remove paths that are no longer needed
         paths.exit()
@@ -288,76 +286,101 @@ function zoomToCounty(event, d) {
 const zoom = d3.zoom()
     .scaleExtent([1, 10]) // Allow zoom between 1x and 10x
     .on("zoom", event => {
-        // Apply the zoom transform to all map layers
-        baseCountiesGroup.attr("transform", event.transform);
-        choroplethGroup.attr("transform", event.transform);
-        countiesGroup.attr("transform", event.transform);
-        statesGroup.attr("transform", event.transform);
+        // Calculate new transform
+        const transform = event.transform;
+
+        // Restrict panning to map bounds
+        const scale = transform.k; // Current zoom level
+        const [width, height] = [svg.attr("width"), svg.attr("height")];
+        const mapWidth = 1000;  // Replace with your map's width
+        const mapHeight = 600;  // Replace with your map's height
+
+        const tx = Math.min(0, Math.max(transform.x, width - mapWidth * scale));
+        const ty = Math.min(0, Math.max(transform.y, height - mapHeight * scale));
+
+        // Apply the constrained transform
+        const constrainedTransform = d3.zoomIdentity.translate(tx, ty).scale(scale);
+
+        // Apply transform to all map layers
+        baseCountiesGroup.attr("transform", constrainedTransform);
+        choroplethGroup.attr("transform", constrainedTransform);
+        countiesGroup.attr("transform", constrainedTransform);
+        statesGroup.attr("transform", constrainedTransform);
     });
 
-svg.call(zoom); // Apply zoom behavior to the entire SVG// Function to create the vertical discrete color scale legend with a title and background
+// Attach the zoom behavior to the SVG
+svg.call(zoom);
+
 function createVerticalLegend() {
     // Set up smaller legend dimensions
     const legendWidth = 150;  // Smaller width
-    const legendHeight = 120; // Smaller height
-    const legendItemHeight = 15; // Smaller height for each legend item
-    const legendItemSpacing = 18; // Adjust spacing to fit items in the smaller legend
+    const legendHeight = 190; // Increased height to accommodate extra category
+    const legendItemHeight = 15; // Height for each legend item
+    const legendSpacing = 5; // Spacing between items
+    const titleHeight = 20; // Space for the title
 
-    // Define the ticks based on the color scale domain
-    const ticks = colorScale.domain();
-
-    // Calculate the top-right position
-    const margin = 20; // Margin from the right and top
-    const legendX = width - legendWidth - margin; // Position from the right
-    const legendY = margin; // Position from the top
-
-    // Append a group for the legend and position it in the top-right corner of the map
+    // Create a group element for the legend
     const legendGroup = svg.append("g")
         .attr("class", "legend")
-        .attr("transform", `translate(${legendX}, ${legendY})`);
+        .attr("transform", `translate(${width - legendWidth - 20}, 20)`); // Position legend in the top-right corner
 
-    // Add a background rectangle for the legend
+    // Add a background for the legend
     legendGroup.append("rect")
-        .attr("class", "legend-background")
-        .attr("x", -5)
-        .attr("y", -5)
-        .attr("width", legendWidth+5)  // Set width for the background
-        .attr("height", legendHeight + 30)  // Set height for the background
-        .attr("fill", "grey")  // Set background color (white in this case)
-        .attr("stroke", "#000000")  // Add a border around the background (black)
-        .attr("stroke-width", 1);  // Border width
+        .attr("width", legendWidth)
+        .attr("height", legendHeight)
+        .attr("fill", "rgba(255, 255, 255, 0.9)")
+        .attr("stroke", "black")
+        .attr("stroke-width", 1);
 
-    // Add title to the legend
+    // Add title for the legend
     legendGroup.append("text")
-        .attr("class", "legend-title")
-        .attr("x", 0)
-        .attr("y", 10)  // Position the title above the first legend item
-        .attr("font-weight", "bold")
-        .attr("font-size", "14px")
-        .text("Corn Production");  // You can change this to any title you want
+        .attr("x", legendWidth / 2)
+        .attr("y", titleHeight / 2 + 5)
+        .attr("text-anchor", "middle")
+        .style("font-size", "14px")
+        .style("font-family", "Arial, sans-serif")
+        .style("font-weight", "bold")
+        .text("Legend Title"); // Replace with your legend title
 
-    // Add color rectangles for each category (vertical alignment)
-    legendGroup.selectAll(".legend-item")
-        .data(ticks)
-        .enter().append("rect")
-        .attr("class", "legend-item")
-        .attr("x", 0) // All color boxes start at x=0
-        .attr("y", (d, i) => i * legendItemSpacing + 20) // Space out the categories vertically and adjust for title
-        .attr("width", legendItemHeight) // Fixed width for each legend item (the color box)
-        .attr("height", legendItemHeight) // Fixed height for each color box
-        .style("fill", d => colorScale(d)); // Set color according to the color scale
+    // Define legend labels (including the new "No Data" label)
+    const legendLabels = [
+        "0 - 10M",
+        "10M - 20M",
+        "20M - 30M",
+        "30M - 40M",
+        "40M - 50M",
+        "50M - 60M",
+        "> 60M",
+        "No Data"
+    ];
 
-    // Add labels for the legend items (to the right of the color box)
-    legendGroup.selectAll(".legend-label")
-        .data(ticks)
-        .enter().append("text")
-        .attr("class", "legend-label")
-        .attr("x", legendItemHeight + 5) // Place label 5px to the right of the color box
-        .attr("y", (d, i) => i * legendItemSpacing + legendItemHeight / 2 + 20) // Align vertically with the color box and adjust for title
-        .attr("dy", ".35em") // Vertically center the label
-        .text(d => `Category: ${d}`) // Label to show the threshold value for each category
-        .style("font-size", "12px");
+    // Define colors for the legend (add white for "No Data")
+    const legendColors = [...d3.schemeGreens[7], "white"];
+
+    // Add legend items
+    legendLabels.forEach((label, index) => {
+        const legendItem = legendGroup.append("g")
+            .attr("transform", `translate(10, ${25 + index * (legendItemHeight + legendSpacing)})`);
+
+        // Add colored rectangle for each legend item
+        legendItem.append("rect")
+            .attr("width", 15)
+            .attr("height", legendItemHeight)
+            .attr("fill", legendColors[index])
+            .attr("stroke", "black")
+            .attr("stroke-width", 0.5);
+
+        // Add label for each legend item
+        legendItem.append("text")
+            .attr("x", 20)
+            .attr("y", legendItemHeight / 2)
+            .attr("dy", "0.35em") // Center the text vertically
+            .style("font-size", "12px")
+            .style("font-family", "Arial, sans-serif")
+            .text(label);
+    });
 }
+
 
 // Call the createVerticalLegend function after the map is initialized
 createVerticalLegend();
