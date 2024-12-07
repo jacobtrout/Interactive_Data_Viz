@@ -160,7 +160,7 @@ let countyInfoText = infoBox.append("text")
     .style("font-family", "Arial, sans-serif");
 
 // Update the information box with proper line breaks
-function updateInfoBox(countyName, stateName, year, production) {
+function updateInfoBox(countyName, stateName, year, production, yield) {
     countyInfoText
         .selectAll("*").remove();  // Remove any existing text
     
@@ -191,6 +191,12 @@ function updateInfoBox(countyName, stateName, year, production) {
         .attr("x", width - 210)
         .attr("dy", "1.4em")  // Line spacing
         .text(`5-Year Avg Prod: ${production}`);
+
+    countyInfoText.append("tspan")
+        .attr("x", width - 210)
+        .attr("dy", "1.4em")  // Line spacing
+        .text(`5-Year Avg Yield: ${yield}`);
+
 }
 
 let lastClickedCounty = null;  // Store the last clicked county
@@ -206,6 +212,7 @@ function updateMap(selectedYear) {
                 county: f.properties.county_name,
                 state: f.properties.state_name,
                 production: f.properties.rolling_avg_production,
+                yield: f.properties.rolling_yield,
                 rawProperties: f.properties
             }))
         );
@@ -264,9 +271,10 @@ function updateMap(selectedYear) {
                 const stateName = d.properties.state_name || 'No state available';
                 const year = d.properties.year || 'No year available';
                 const production = d.properties.rolling_avg_production || 'No data available';
+                const yield = d.properties.rolling_yield || 'No data available';
 
                 // Update the information box (text inside the SVG or div)
-                updateInfoBox(countyName, stateName, year, production)
+                updateInfoBox(countyName, stateName, year, production, yield)
                 
                 // Optionally, you could zoom to the clicked county (if desired)
                 zoomToCounty(event, d);
