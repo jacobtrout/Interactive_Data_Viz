@@ -92,9 +92,16 @@ Promise.all([
                     playInterval = null;
                     this.textContent = "Play";  // Reset button text to Play
                 }
-            }, 1000); // Update every second (1000 ms)
+            }, 500); // Update every second (1000 ms)
             this.textContent = "Pause";  // Change button text to Pause
         }
+    });
+    
+    // Add this with your other button handlers
+    d3.select("#resetZoom").on("click", function() {
+        svg.transition()
+            .duration(750)
+            .call(zoom.transform, d3.zoomIdentity);
     });
     
 });
@@ -112,14 +119,6 @@ function drawBaseLayers(statesData, countiesData, USAData) {
         .attr("stroke-width", 1)
         .attr("d", path);
 
-/*
-    // Draw base light grey filled counties
-    baseCountiesGroup.selectAll("path")
-        .data(countiesData.features)
-        .enter().append("path")
-        .attr("fill", "white")  // Light grey fill
-        .attr("d", path); 
-*/
     // Draw county boundaries
     countiesGroup.selectAll("path")
         .data(countiesData.features)
@@ -197,30 +196,55 @@ function updateInfoBox(countyName, stateName, year, production) {
 let lastClickedCounty = null;  // Store the last clicked county
 
 function updateMap(selectedYear) {
-    // Load the GeoJSON file for the selected year
     const fileName = `output_data/output_${selectedYear}.geojson`;
-
+    
     d3.json(fileName).then(data => {
-        // Bind new data to the choropleth paths
+        // Add detailed data inspection
+        console.log(`Year ${selectedYear} - Sample Feature Properties:`, 
+            data.features.slice(0, 3).map(f => ({
+                id: f.properties.id,
+                county: f.properties.county_name,
+                state: f.properties.state_name,
+                production: f.properties.rolling_avg_production,
+                rawProperties: f.properties
+            }))
+        );
+
+        // Rest of your existing validation
+        const nonNullValues = data.features.filter(f => 
+            f.properties.rolling_avg_production !== null && 
+            f.properties.rolling_avg_production !== undefined &&
+            !isNaN(f.properties.rolling_avg_production)
+        );
+        
+        console.log(`Year ${selectedYear}:`, {
+            totalFeatures: data.features.length,
+            featuresWithData: nonNullValues.length,
+            sampleValues: nonNullValues.slice(0, 3).map(f => f.properties.rolling_avg_production)
+        });
+
+        // Update existing paths with better error handling
         const paths = choroplethGroup.selectAll("path")
-            .data(data.features, d => d.properties.id); // Use unique property for data binding
+            .data(data.features, d => d.properties.id);
 
         // Update existing paths
-        paths.transition()
-            .duration(750) // Smooth transition for fade-in effect
+        paths
+            .transition()
+            .duration(750)
             .attr("fill", d => {
-                // Check if fiveyr_rolling_avg exists and is a valid number
-                const avg = d.properties.fiveyr_rolling_avg;
-                return avg !== null && avg !== undefined ? colorScale(avg) : "white"; // If no data, grey
-            })
+                const avg = d.properties.rolling_avg_production;
+                if (avg === null || avg === undefined || isNaN(avg) || avg === 0) {
+                    return "white";
+                }
+                return colorScale(avg);
+            });
 
-
-        // Add new paths (if any)
+        // Add new paths
         paths.enter()
             .append("path")
-            .attr("fill", "grey") // Start with grey for counties with no data
+            .attr("fill", "white")
             .attr("d", path)
-            .style("opacity", 0) // Initially invisible
+            .style("opacity", 0)
             .on("click", function(event, d) {
                 // Reset the border of the previously clicked county
                 if (lastClickedCounty) {
@@ -238,77 +262,90 @@ function updateMap(selectedYear) {
                 // Update the information box (text inside the SVG)
                 const countyName = d.properties.county_name || 'No name available';
                 const stateName = d.properties.state_name || 'No state available';
-                const year = d.properties.Year || 'No year available';
-                const production = d.properties.fiveyr_rolling_avg || 'No data available';
+                const year = d.properties.year || 'No year available';
+                const production = d.properties.rolling_avg_production || 'No data available';
 
                 // Update the information box (text inside the SVG or div)
                 updateInfoBox(countyName, stateName, year, production)
-
-
+                
                 // Optionally, you could zoom to the clicked county (if desired)
                 zoomToCounty(event, d);
             })
             .transition()
             .duration(750)
-            .style("opacity", 1) // Fade in
+            .style("opacity", 1)
             .attr("fill", d => {
-                // Check if fiveyr_rolling_avg exists and is a valid number
-                const avg = d.properties.fiveyr_rolling_avg;
-                return avg !== null && avg !== undefined ? colorScale(avg) : "white"; // If no data, grey
+                const avg = d.properties.rolling_avg_production;
+                if (avg === null || avg === undefined || isNaN(avg) || avg === 0) {
+                    return "white";
+                }
+                return colorScale(avg);
             });
 
-        // Remove paths that are no longer needed
+        // Remove old paths
         paths.exit()
             .transition()
             .duration(750)
-            .style("opacity", 0) // Fade out
+            .style("opacity", 0)
             .remove();
+
     }).catch(error => {
-        console.error("Error loading the GeoJSON file:", error);
+        console.error(`Error loading data for year ${selectedYear}:`, error);
     });
-}
-
-// Zoom Function
-function zoomToCounty(event, d) {
-    const [[x0, y0], [x1, y1]] = path.bounds(d); // Get bounding box of the clicked county
-    const width = svg.node().getBoundingClientRect().width; // Get SVG dimensions
-    const height = svg.node().getBoundingClientRect().height;
-
-    const scale = Math.min(2, 0.9 / Math.max((x1 - x0) / width, (y1 - y0) / height)); // Scale factor
-    const translate = [(width - scale * (x0 + x1)) / 2, (height - scale * (y0 + y1)) / 2]; // Center translation
-
-    svg.transition()
-        .duration(750) // Smooth transition
-        .call(zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale)); // Apply transform
 }
 
 // Set up Zoom Behavior
 const zoom = d3.zoom()
-    .scaleExtent([1, 10]) // Allow zoom between 1x and 10x
+    .scaleExtent([1, 8])
+    .translateExtent([[0, 0], [width, height]])
+    .extent([[0, 0], [width, height]])
     .on("zoom", event => {
-        // Calculate new transform
+        // Get the current transform
         const transform = event.transform;
-
-        // Restrict panning to map bounds
-        const scale = transform.k; // Current zoom level
-        const [width, height] = [svg.attr("width"), svg.attr("height")];
-        const mapWidth = 1000;  // Replace with your map's width
-        const mapHeight = 600;  // Replace with your map's height
-
-        const tx = Math.min(0, Math.max(transform.x, width - mapWidth * scale));
-        const ty = Math.min(0, Math.max(transform.y, height - mapHeight * scale));
-
-        // Apply the constrained transform
-        const constrainedTransform = d3.zoomIdentity.translate(tx, ty).scale(scale);
-
-        // Apply transform to all map layers
-        baseCountiesGroup.attr("transform", constrainedTransform);
-        choroplethGroup.attr("transform", constrainedTransform);
-        countiesGroup.attr("transform", constrainedTransform);
-        statesGroup.attr("transform", constrainedTransform);
+        
+        // Clamp the x and y translations to keep the map in view
+        transform.x = Math.min(0, Math.max(width * (1 - transform.k), transform.x));
+        transform.y = Math.min(0, Math.max(height * (1 - transform.k), transform.y));
+        
+        // Apply the clamped transform to map layers only (exclude info box)
+        const layers = [baseCountiesGroup, choroplethGroup, countiesGroup, statesGroup];
+        layers.forEach(layer => layer.attr("transform", transform));
+        
+        // Remove this line to keep info box stationary
+        // infoBox.attr("transform", `translate(${transform.x}, ${transform.y})`);
     });
 
-// Attach the zoom behavior to the SVG
+// Function to reset zoom
+function resetZoom() {
+    svg.transition()
+        .duration(750)
+        .call(zoom.transform, d3.zoomIdentity);
+}
+
+// Modify zoomToCounty function to respect bounds
+function zoomToCounty(event, d) {
+    const bounds = path.bounds(d);
+    const dx = bounds[1][0] - bounds[0][0];
+    const dy = bounds[1][1] - bounds[0][1];
+    const x = (bounds[0][0] + bounds[1][0]) / 2;
+    const y = (bounds[0][1] + bounds[1][1]) / 2;
+    
+    // Calculate the scale and translate
+    const scale = Math.min(4, 0.9 / Math.max(dx / width, dy / height));
+    
+    // Calculate the translation while respecting bounds
+    let translate = [width / 2 - scale * x, height / 2 - scale * y];
+    translate[0] = Math.min(0, Math.max(width * (1 - scale), translate[0]));
+    translate[1] = Math.min(0, Math.max(height * (1 - scale), translate[1]));
+    
+    svg.transition()
+        .duration(750)
+        .call(zoom.transform, d3.zoomIdentity
+            .translate(translate[0], translate[1])
+            .scale(scale));
+}
+
+// Make sure to attach the zoom behavior to the SVG
 svg.call(zoom);
 
 function createVerticalLegend() {
