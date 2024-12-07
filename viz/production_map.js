@@ -14,10 +14,18 @@ var projection = d3.geoAlbersUsa()
 
 var path = d3.geoPath().projection(projection);
 
-var colorScale = d3.scaleThreshold()
-    .domain([0, 10000000, 20000000, 30000000, 40000000, 50000000, 60000000]) // Adjust for your data range
-    .range(d3.schemeGreens[7]);  // Adjust number of colors
+// Add two color scales - one for each metric
+var productionColorScale = d3.scaleThreshold()
+    .domain([0, 10000000, 20000000, 30000000, 40000000, 50000000, 60000000])
+    .range(d3.schemeGreens[7]);
 
+// ... existing code ...
+var yieldColorScale = d3.scaleThreshold()
+    .domain([35, 70, 105, 140, 175, 210]) // Six thresholds creating seven categories up to 250
+    .range(d3.schemeGreens[7]); // Using built-in D3 green color scheme for 7 categories
+
+// Variable to track current metric
+let currentMetric = 'production';
 
 let geojsonData; // To store the full GeoJSON data
 
@@ -104,6 +112,29 @@ Promise.all([
             .call(zoom.transform, d3.zoomIdentity);
     });
     
+    // Add dropdown creation after other UI elements
+    const metricSelector = d3.select("#controls") // Make sure you have a div with id="controls" in your HTML
+        .append("select")
+        .attr("id", "metricSelector")
+        .style("margin", "10px");
+
+    metricSelector
+        .selectAll("option")
+        .data([
+            {value: "production", text: "Production"},
+            {value: "yield", text: "Yield"}
+        ])
+        .enter()
+        .append("option")
+        .attr("value", d => d.value)
+        .text(d => d.text);
+
+    // Add event listener for dropdown
+    metricSelector.on("change", function() {
+        currentMetric = this.value;
+        updateMap(years[slider.property("value")]);
+        updateLegend(); // We'll create this function
+    });
 });
 
 // Function to draw the base layers on the map
@@ -144,16 +175,16 @@ let infoBox = svg.append("g")
 
 infoBox.append("rect")
     .attr("x", width - 220)
-    .attr("y", height - 120)
-    .attr("width", 200)
-    .attr("height", 100)
+    .attr("y", height - 220)
+    .attr("width", 175)
+    .attr("height", 150)
     .attr("fill", "rgba(255, 255, 255, 0.9)")
     .attr("stroke", "black")
     .attr("stroke-width", 1);
 
 let countyInfoText = infoBox.append("text")
     .attr("x", width - 210)
-    .attr("y", height - 100)
+    .attr("y", height - 200)
     .attr("font-size", "12px")
     .attr("fill", "black")
     .style("pointer-events", "none")
@@ -239,11 +270,16 @@ function updateMap(selectedYear) {
             .transition()
             .duration(750)
             .attr("fill", d => {
-                const avg = d.properties.rolling_avg_production;
-                if (avg === null || avg === undefined || isNaN(avg) || avg === 0) {
+                const value = currentMetric === 'production' 
+                    ? d.properties.rolling_avg_production 
+                    : d.properties.rolling_yield;
+                
+                if (value === null || value === undefined || isNaN(value) || value === 0) {
                     return "white";
                 }
-                return colorScale(avg);
+                return currentMetric === 'production' 
+                    ? productionColorScale(value) 
+                    : yieldColorScale(value);
             });
 
         // Add new paths
@@ -283,11 +319,16 @@ function updateMap(selectedYear) {
             .duration(750)
             .style("opacity", 1)
             .attr("fill", d => {
-                const avg = d.properties.rolling_avg_production;
-                if (avg === null || avg === undefined || isNaN(avg) || avg === 0) {
+                const value = currentMetric === 'production' 
+                    ? d.properties.rolling_avg_production 
+                    : d.properties.rolling_yield;
+                
+                if (value === null || value === undefined || isNaN(value) || value === 0) {
                     return "white";
                 }
-                return colorScale(avg);
+                return currentMetric === 'production' 
+                    ? productionColorScale(value) 
+                    : yieldColorScale(value);
             });
 
         // Remove old paths
@@ -379,56 +420,83 @@ function createVerticalLegend() {
 
     // Add title for the legend
     legendGroup.append("text")
+        .attr("class", "legend-title")
         .attr("x", legendWidth / 2)
         .attr("y", titleHeight / 2 + 5)
         .attr("text-anchor", "middle")
         .style("font-size", "14px")
         .style("font-family", "Arial, sans-serif")
-        .style("font-weight", "bold")
-        .text("Legend Title"); // Replace with your legend title
+        .style("font-weight", "bold");
 
-    // Define legend labels (including the new "No Data" label)
-    const legendLabels = [
-        "0 - 10M",
-        "10M - 20M",
-        "20M - 30M",
-        "30M - 40M",
-        "40M - 50M",
-        "50M - 60M",
-        "> 60M",
-        "No Data"
-    ];
+    function updateLegend() {
+        const legendLabels = currentMetric === 'production' 
+            ? [
+                "0 - 10M",
+                "10M - 20M",
+                "20M - 30M",
+                "30M - 40M",
+                "40M - 50M",
+                "50M - 60M",
+                "> 60M",
+                "No Data"
+            ]
+            : [
+                "0 - 35",
+                "35 - 70",
+                "70 - 105",
+                "105 - 140",
+                "140 - 175",
+                "175 - 210",
+                "> 210",
+                "No Data"
+            ];
 
-    // Define colors for the legend (add white for "No Data")
-    const legendColors = [...d3.schemeGreens[7], "white"];
+        const legendColors = currentMetric === 'production'
+            ? [...d3.schemeGreens[7], "white"]
+            : [...d3.schemeGreens[7], "white"];
 
-    // Add legend items
-    legendLabels.forEach((label, index) => {
-        const legendItem = legendGroup.append("g")
-            .attr("transform", `translate(10, ${25 + index * (legendItemHeight + legendSpacing)})`);
+        // Update legend title
+        legendGroup.select(".legend-title")
+            .text(currentMetric === 'production' ? "Production (bushels)" : "Yield (bushels/acre)");
+
+        // Remove existing legend items
+        legendGroup.selectAll(".legend-item").remove();
+
+        // Create new legend items
+        const legendItems = legendGroup.selectAll(".legend-item")
+            .data(legendLabels)
+            .enter()
+            .append("g")
+            .attr("class", "legend-item")
+            .attr("transform", (d, i) => `translate(10, ${25 + i * (legendItemHeight + legendSpacing)})`);
 
         // Add colored rectangle for each legend item
-        legendItem.append("rect")
+        legendItems.append("rect")
             .attr("width", 15)
             .attr("height", legendItemHeight)
-            .attr("fill", legendColors[index])
+            .attr("fill", (d, i) => legendColors[i])
             .attr("stroke", "black")
             .attr("stroke-width", 0.5);
 
         // Add label for each legend item
-        legendItem.append("text")
+        legendItems.append("text")
             .attr("x", 20)
             .attr("y", legendItemHeight / 2)
-            .attr("dy", "0.35em") // Center the text vertically
+            .attr("dy", "0.35em")
             .style("font-size", "12px")
             .style("font-family", "Arial, sans-serif")
-            .text(label);
-    });
+            .text(d => d);
+    }
+
+    // Initial legend creation
+    updateLegend();
+
+    // Return the updateLegend function so it can be called from outside
+    return updateLegend;
 }
 
-
-// Call the createVerticalLegend function after the map is initialized
-createVerticalLegend();
+// Store the updateLegend function when creating the legend
+const updateLegend = createVerticalLegend();
 
 
 
