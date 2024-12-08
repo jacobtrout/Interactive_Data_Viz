@@ -39,6 +39,24 @@ var yieldChangeColorScale = d3.scaleThreshold()
     .domain([-25, 0, 25, 50, 75, 100, 125])
     .range(["#ffd700", "#fff7bc", ...d3.schemeGreens[5]]); // Dark yellow, light yellow, then greens
 
+// Add new color scales for temperature and precipitation
+var temperatureColorScale = d3.scaleThreshold()
+    .domain([40, 45, 50, 55, 60, 65])
+    .range(d3.schemeReds[7]);
+
+var precipitationColorScale = d3.scaleThreshold()
+    .domain([0, 1, 2, 3, 4, 5])
+    .range(d3.schemeBlues[7]);
+
+// Add new color scales at the top of the file with other scales
+var temperatureChangeColorScale = d3.scaleThreshold()
+    .domain([0, 0.5, 1.0, 1.5, 2.0])
+    .range(["#fee5d9", "#fcbba1", "#fc9272", "#fb6a4a", "#de2d26", "#a50f15"]); // Light to dark red
+
+var precipitationChangeColorScale = d3.scaleThreshold()
+    .domain([0, 0.15, 0.3, 0.45, 0.6])
+    .range(["#deebf7", "#c6dbef", "#9ecae1", "#6baed6", "#3182bd", "#08519c", "white"]); // Light to dark blues
+
 // Variable to track current metric
 let currentMetric = 'production';
 
@@ -144,7 +162,9 @@ Promise.all([
             {value: "production", text: "Production"},
             {value: "yield", text: "Yield"},
             {value: "production_change", text: "Production Change from 1980"},
-            {value: "yield_change", text: "Yield Change from 1980"}
+            {value: "yield_change", text: "Yield Change from 1980"},
+            {value: "temperature", text: "Annual Temperature"},
+            {value: "precipitation", text: "Annual Precipitation"}
         ])
         .enter()
         .append("option")
@@ -158,6 +178,8 @@ Promise.all([
         updateMap(selectedYear);
         updateLegend();
     });
+
+    console.log("Sample data properties:", data.features[0].properties);
 });
 
 // Function to draw the base layers on the map
@@ -242,7 +264,7 @@ let countyInfoText2 = infoBox2.append("text")
     .style("font-family", "Arial, sans-serif");
 
 // Update the information box with proper line breaks
-function updateInfoBox(countyName, stateName, year, production, yield, productionChange, yieldChange) {
+function updateInfoBox(countyName, stateName, year, production, yield, productionChange, yieldChange, avgTemp, avgPrecip, tempChange, precipChange) {
     // Update first info box
     countyInfoText1
         .selectAll("*").remove();  // Remove any existing text
@@ -283,12 +305,12 @@ function updateInfoBox(countyName, stateName, year, production, yield, productio
     countyInfoText1.append("tspan")
         .attr("x", width - 210)
         .attr("dy", "1.4em")
-        .text(`Prod Change from 1980: ${productionChange}`);
+        .text(`Temperature Change: ${avgTemp}`);
 
     countyInfoText1.append("tspan")
         .attr("x", width - 210)
         .attr("dy", "1.4em")
-        .text(`Yield Change from 1980: ${yieldChange}`);
+        .text(`Average Precipitation: ${avgPrecip}`);
 
     // Update second info box
     countyInfoText2
@@ -320,22 +342,22 @@ function updateInfoBox(countyName, stateName, year, production, yield, productio
     countyInfoText2.append("tspan")
         .attr("x", width - 210)
         .attr("dy", "1.4em")
-        .text(`5-Year Avg Prod: ${production}`);
-
-    countyInfoText2.append("tspan")
-        .attr("x", width - 210)
-        .attr("dy", "1.4em")
-        .text(`5-Year Avg Yield: ${yield}`);
-
-    countyInfoText2.append("tspan")
-        .attr("x", width - 210)
-        .attr("dy", "1.4em")
-        .text(`Prod Change from 1980: ${productionChange}`);
+        .text(`Production Change: ${productionChange}`);
 
     countyInfoText2.append("tspan")
         .attr("x", width - 210)
         .attr("dy", "1.4em")
         .text(`Yield Change from 1980: ${yieldChange}`);
+
+    countyInfoText2.append("tspan")
+        .attr("x", width - 210)
+        .attr("dy", "1.4em")
+        .text(`Temperature Change: ${tempChange}`);
+
+    countyInfoText2.append("tspan")
+        .attr("x", width - 210)
+        .attr("dy", "1.4em")
+        .text(`Precipitation Change: ${precipChange}`);
 }
 
 let lastClickedCounty = null;  // Store the last clicked county
@@ -344,13 +366,19 @@ function updateMap(selectedYear) {
     const fileName = `output_data/output_${selectedYear}.geojson`;
     
     d3.json(fileName).then(data => {
-        // Special handling for production and yield
+        // Special handling for production, yield, and temperature
         if (currentMetric === 'production') {
             updateMapData(choroplethGroup1, data, 'production');
             updateMapData(choroplethGroup2, data, 'production_change');
         } else if (currentMetric === 'yield') {
             updateMapData(choroplethGroup1, data, 'yield');
             updateMapData(choroplethGroup2, data, 'yield_change');
+        } else if (currentMetric === 'temperature') {
+            updateMapData(choroplethGroup1, data, 'temperature');
+            updateMapData(choroplethGroup2, data, 'temperature_change');
+        } else if (currentMetric === 'precipitation') {
+            updateMapData(choroplethGroup1, data, 'precipitation');
+            updateMapData(choroplethGroup2, data, 'precipitation_change');
         } else {
             // For all other metrics, show the same metric on both maps
             updateMapData(choroplethGroup1, data, currentMetric);
@@ -389,6 +417,22 @@ function updateMapData(choroplethGroup, data, metric) {
                     value = d.properties.rolling_yield_abs_change_from_1980;
                     return value === null || value === undefined || isNaN(value) 
                         ? "white" : yieldChangeColorScale(value);
+                case 'temperature':
+                    value = d.properties.ann_avg_temp;
+                    return value === null || value === undefined || isNaN(value) 
+                        ? "white" : temperatureColorScale(value);
+                case 'precipitation':
+                    value = d.properties.ann_avg_precip;
+                    return value === null || value === undefined || isNaN(value) 
+                        ? "white" : precipitationColorScale(value);
+                case 'temperature_change':
+                    value = d.properties.ann_avg_temp_abs_change_from_1980;
+                    return value === null || value === undefined || isNaN(value) 
+                        ? "white" : temperatureChangeColorScale(value);
+                case 'precipitation_change':
+                    value = d.properties.ann_avg_precip_abs_change_from_1980;
+                    return value === null || value === undefined || isNaN(value) 
+                        ? "white" : precipitationChangeColorScale(value);
             }
         });
 
@@ -420,9 +464,13 @@ function updateMapData(choroplethGroup, data, metric) {
             const yield = d.properties.rolling_yield || 'No data available';
             const productionChange = d.properties.rolling_avg_production_abs_change_from_1980 || 'No data available';
             const yieldChange = d.properties.rolling_yield_abs_change_from_1980 || 'No data available';
+            const avgTemp = d.properties.ann_avg_temp || 'No data available';
+            const avgPrecip = d.properties.ann_avg_precip || 'No data available';
+            const tempChange = d.properties.ann_avg_temp_abs_change_from_1980 || 'No data available';
+            const precipChange = d.properties.ann_avg_precip_abs_change_from_1980 || 'No data available';
 
             // Update the information box with all metrics
-            updateInfoBox(countyName, stateName, year, production, yield, productionChange, yieldChange);
+            updateInfoBox(countyName, stateName, year, production, yield, productionChange, yieldChange, avgTemp, avgPrecip, tempChange, precipChange);
             
             // Optionally, you could zoom to the clicked county (if desired)
             zoomToCounty(event, d);
@@ -449,6 +497,22 @@ function updateMapData(choroplethGroup, data, metric) {
                     value = d.properties.rolling_yield_abs_change_from_1980;
                     return value === null || value === undefined || isNaN(value) 
                         ? "white" : yieldChangeColorScale(value);
+                case 'temperature':
+                    value = d.properties.ann_avg_temp;
+                    return value === null || value === undefined || isNaN(value) 
+                        ? "white" : temperatureColorScale(value);
+                case 'precipitation':
+                    value = d.properties.ann_avg_precip;
+                    return value === null || value === undefined || isNaN(value) 
+                        ? "white" : precipitationColorScale(value);
+                case 'temperature_change':
+                    value = d.properties.ann_avg_temp_abs_change_from_1980;
+                    return value === null || value === undefined || isNaN(value) 
+                        ? "white" : temperatureChangeColorScale(value);
+                case 'precipitation_change':
+                    value = d.properties.ann_avg_precip_abs_change_from_1980;
+                    return value === null || value === undefined || isNaN(value) 
+                        ? "white" : precipitationChangeColorScale(value);
             }
         });
 
@@ -561,11 +625,23 @@ function createVerticalLegend() {
         const yieldChangeLabels = ["< -25", "-25 - 0", "0 - 25", "25 - 50", "50 - 75", "75 - 100", "> 100", "No Data"];
         const yieldChangeColors = ["#ffd700", "#fff7bc", ...d3.schemeGreens[5], "white"];
 
+        const temperatureLabels = ["< 40°F", "40-45°F", "45-50°F", "50-55°F", "55-60°F", "60-65°F", "> 65°F", "No Data"];
+        const temperatureColors = [...d3.schemeReds[7], "white"];
+
+        const precipitationLabels = ["< 1\"", "1-2\"", "2-3\"", "3-4\"", "4-5\"", "> 5\"", "No Data"];
+        const precipitationColors = [...d3.schemeBlues[6], "white"];
+
+        const temperatureChangeLabels = ["< 0°F", "0 - 0.5°F", "0.5 - 1.0°F", "1.0 - 1.5°F", "1.5 - 2.0°F", "> 2.0°F", "No Data"];
+        const temperatureChangeColors = ["#fee5d9", "#fcbba1", "#fc9272", "#fb6a4a", "#de2d26", "#a50f15", "white"];
+
+        const precipitationChangeLabels = ["< 0", "0 - 0.15", "0.15 - 0.3", "0.3 - 0.45", "0.45 - 0.6", "> 0.6", "No Data"];
+        const precipitationChangeColors = ["#deebf7", "#c6dbef", "#9ecae1", "#6baed6", "#3182bd", "#08519c", "white"];
+
         // Get legend config for both maps
         let legend1Title, legend1Labels, legend1Colors;
         let legend2Title, legend2Labels, legend2Colors;
 
-        // Special handling for production and yield
+        // Special handling for production, yield, and temperature
         if (currentMetric === 'production') {
             // First legend - Production
             legend1Title = "Production (bushels)";
@@ -586,6 +662,26 @@ function createVerticalLegend() {
             legend2Title = "Yield Change from 1980";
             legend2Labels = yieldChangeLabels;
             legend2Colors = yieldChangeColors;
+        } else if (currentMetric === 'temperature') {
+            // First legend - Temperature
+            legend1Title = "Annual Average Temperature";
+            legend1Labels = temperatureLabels;
+            legend1Colors = temperatureColors;
+            
+            // Second legend - Temperature Change
+            legend2Title = "Temperature Change from 1980 (°F)";
+            legend2Labels = temperatureChangeLabels;
+            legend2Colors = temperatureChangeColors;
+        } else if (currentMetric === 'precipitation') {
+            // First legend - Precipitation
+            legend1Title = "Annual Average Precipitation";
+            legend1Labels = precipitationLabels;
+            legend1Colors = precipitationColors;
+            
+            // Second legend - Precipitation Change
+            legend2Title = "Precipitation Change from 1980";
+            legend2Labels = precipitationChangeLabels;
+            legend2Colors = precipitationChangeColors;
         } else {
             // For all other metrics, use the same legend for both maps
             switch(currentMetric) {
@@ -598,6 +694,21 @@ function createVerticalLegend() {
                     legend1Title = legend2Title = "Yield Change from 1980";
                     legend1Labels = legend2Labels = yieldChangeLabels;
                     legend1Colors = legend2Colors = yieldChangeColors;
+                    break;
+                case 'temperature':
+                    legend1Title = legend2Title = "Annual Average Temperature";
+                    legend1Labels = legend2Labels = temperatureLabels;
+                    legend1Colors = legend2Colors = temperatureColors;
+                    break;
+                case 'temperature_change':
+                    legend1Title = legend2Title = "Temperature Change from 1980 (°F)";
+                    legend1Labels = legend2Labels = temperatureChangeLabels;
+                    legend1Colors = legend2Colors = temperatureChangeColors;
+                    break;
+                case 'precipitation':
+                    legend1Title = legend2Title = "Annual Average Precipitation";
+                    legend1Labels = legend2Labels = precipitationLabels;
+                    legend1Colors = legend2Colors = precipitationColors;
                     break;
             }
         }
@@ -648,7 +759,6 @@ function createVerticalLegend() {
 
 // Store the updateLegend function when creating the legend
 const updateLegend = createVerticalLegend();
-
 
 
 
