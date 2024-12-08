@@ -99,18 +99,93 @@ Promise.all([
     const slider = d3.select("#timeSlider")
         .attr("min", 0)
         .attr("max", years.length - 1)
-        .property("value", 0);  // Use .property for dynamic value binding
+        .property("value", 0)
+        .style("position", "fixed")
+        .style("right", "20px")
+        .style("top", "80px")
+        .style("transform-origin", "right")
+        .style("width", "320px")
+        .style("z-index", "1000")
+        .style("margin-bottom", "25px")
+        .style("appearance", "none")
+        .style("-webkit-appearance", "none")
+        .style("background", "#d3d3d3")
+        .style("height", "5px")
+        .style("border-radius", "5px")
+        .style("outline", "none")
+        .style("opacity", "0.7")
+        .style("transition", "opacity .2s")
+        .on("mouseover", function() { 
+            d3.select(this).style("opacity", "1"); 
+        })
+        .on("mouseout", function() { 
+            d3.select(this).style("opacity", "0.7"); 
+        });
+
+    // Style the slider thumb (the draggable part)
+    const thumbStyle = `
+        #timeSlider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            background: #4CAF50;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+        #timeSlider::-moz-range-thumb {
+            width: 15px;
+            height: 15px;
+            background: #4CAF50;
+            cursor: pointer;
+            border-radius: 50%;
+            border: none;
+        }
+    `;
+
+    // Add the styles to the document
+    const styleSheet = document.createElement("style");
+    styleSheet.innerText = thumbStyle;
+    document.head.appendChild(styleSheet);
+
+    // Create labels for specific years only (start, middle, end)
+    const yearLabels = [1980, 2000, 2023];
+
+    slider.selectAll("span")
+        .data(yearLabels)
+        .enter()
+        .append("span")
+        .style("position", "relative")
+        .style("text-align", "right")
+        .style("font-size", "12px")
+        .style("color", "white")
+        .text(d => d);
 
     // Display the year
-    const timeDisplay = d3.select("#timeDisplay");
-    timeDisplay.text(`Year: ${years[0]}`);
+    const timeDisplay = d3.select("#timeDisplay")
+        .style("position", "fixed")
+        .style("right", "20px")
+        .style("top", "20px")
+        .style("transform", "none")
+        .style("z-index", "1000")
+        .style("font-size", "24px")
+        .style("font-weight", "bold")
+        .style("color", "#333")
+        .style("background-color", "rgba(255, 255, 255, 0.9)")
+        .style("padding", "10px 20px")
+        .style("border-radius", "4px")
+        .style("box-shadow", "0 2px 5px rgba(0,0,0,0.1)")
+        .style("width", "120px")
+        .style("text-align", "center");
+
+    timeDisplay.text(`${years[0]}`);
 
     // Handle year selection via slider
     slider.on("input", function(e) {
         const selectedIndex = +e.target.value;
         const selectedYear = years[selectedIndex];
         updateMap(selectedYear);
-        timeDisplay.text(`Year: ${selectedYear}`);
+        timeDisplay.text(`${selectedYear}`);
     });
 
     let playInterval;
@@ -128,7 +203,7 @@ Promise.all([
                 const selectedYear = years[currentYearIndex];
                 slider.property("value", currentYearIndex);  // Dynamically update slider value
                 updateMap(selectedYear);
-                timeDisplay.text(`Year: ${selectedYear}`);
+                timeDisplay.text(`${selectedYear}`);
     
                 // Move to the next year
                 currentYearIndex++;
@@ -150,19 +225,52 @@ Promise.all([
             .call(zoom1.transform, d3.zoomIdentity);
     });
     
-    // Add dropdown creation after other UI elements
+    // Update play button position
+    const playButton = d3.select("#playPause")
+        .style("position", "fixed")
+        .style("right", "20px")     // Aligned with slider
+        .style("top", "110px")      // Positioned below slider
+        .style("transform", "none")
+        .style("z-index", "1000")
+        .style("padding", "10px 20px")
+        .style("font-size", "16px")
+        .style("cursor", "pointer")
+        .style("background-color", "#4CAF50")
+        .style("color", "white")
+        .style("border", "none")
+        .style("border-radius", "4px")
+        .style("box-shadow", "0 2px 5px rgba(0,0,0,0.2)")
+        .on("mouseover", function() {
+            d3.select(this).style("background-color", "#45a049")
+        })
+        .on("mouseout", function() {
+            d3.select(this).style("background-color", "#4CAF50")
+        });
+
+    // Update dropdown position to be next to year display
     const metricSelector = d3.select("#controls")
         .append("select")
         .attr("id", "metricSelector")
-        .style("margin", "10px");
+        .style("position", "fixed")
+        .style("right", "150px")
+        .style("top", "20px")
+        .style("z-index", "1000")
+        .style("padding", "10px 10px")
+        .style("font-size", "14px")
+        .style("border-radius", "4px")
+        .style("border", "1px solid #ccc")
+        .style("background-color", "white")
+        .style("cursor", "pointer")
+        .style("height", "50px")
+        .style("width", "190px")
+        .style("overflow", "hidden")
+        .style("text-overflow", "ellipsis");
 
     metricSelector
         .selectAll("option")
         .data([
             {value: "production", text: "Production"},
             {value: "yield", text: "Yield"},
-            {value: "production_change", text: "Production Change from 1980"},
-            {value: "yield_change", text: "Yield Change from 1980"},
             {value: "temperature", text: "Annual Temperature"},
             {value: "precipitation", text: "Annual Precipitation"}
         ])
@@ -360,7 +468,9 @@ function updateInfoBox(countyName, stateName, year, production, yield, productio
         .text(`Precipitation Change: ${precipChange}`);
 }
 
-let lastClickedCounty = null;  // Store the last clicked county
+// Track last clicked counties for both maps
+let lastClickedCounty1 = null;
+let lastClickedCounty2 = null;
 
 function updateMap(selectedYear) {
     const fileName = `output_data/output_${selectedYear}.geojson`;
@@ -394,7 +504,7 @@ function updateMapData(choroplethGroup, data, metric) {
     const paths = choroplethGroup.selectAll("path")
         .data(data.features, d => d.properties.id);
 
-    // Update existing paths with better error handling
+    // Update existing paths
     paths
         .transition()
         .duration(750)
@@ -436,27 +546,41 @@ function updateMapData(choroplethGroup, data, metric) {
             }
         });
 
-    // Add new paths
+    // Add new paths with modified click handler
     paths.enter()
         .append("path")
         .attr("fill", "white")
         .attr("d", path)
         .style("opacity", 0)
         .on("click", function(event, d) {
-            // Reset the border of the previously clicked county
-            if (lastClickedCounty) {
-                lastClickedCounty.style("stroke", null).style("stroke-width", null);
-                lastClickedCounty.style("fill", null);
+            // Reset previous highlights on both maps
+            if (lastClickedCounty1) {
+                lastClickedCounty1.style("stroke", null).style("stroke-width", null);
+                lastClickedCounty1.style("fill", null);
+            }
+            if (lastClickedCounty2) {
+                lastClickedCounty2.style("stroke", null).style("stroke-width", null);
+                lastClickedCounty2.style("fill", null);
             }
 
-            // Set the border color to orange on the clicked county
-            d3.select(this).style("stroke", "orange").style("stroke-width", 3);
-            d3.select(this).style("fill", "orange");
+            // Find and highlight the same county in both maps
+            const countyId = d.properties.id;
+            const map1County = choroplethGroup1.selectAll("path")
+                .filter(d => d.properties.id === countyId);
+            const map2County = choroplethGroup2.selectAll("path")
+                .filter(d => d.properties.id === countyId);
 
-            // Store the current clicked county
-            lastClickedCounty = d3.select(this);
+            // Highlight both counties
+            map1County.style("stroke", "orange").style("stroke-width", 3);
+            map1County.style("fill", "orange");
+            map2County.style("stroke", "orange").style("stroke-width", 3);
+            map2County.style("fill", "orange");
 
-            // Update the information box with all metrics
+            // Store the clicked counties
+            lastClickedCounty1 = map1County;
+            lastClickedCounty2 = map2County;
+
+            // Update the information box
             const countyName = d.properties.county_name || 'No name available';
             const stateName = d.properties.state_name || 'No state available';
             const year = d.properties.year || 'No year available';
@@ -472,7 +596,7 @@ function updateMapData(choroplethGroup, data, metric) {
             // Update the information box with all metrics
             updateInfoBox(countyName, stateName, year, production, yield, productionChange, yieldChange, avgTemp, avgPrecip, tempChange, precipChange);
             
-            // Optionally, you could zoom to the clicked county (if desired)
+            // Zoom both maps to the clicked county
             zoomToCounty(event, d);
         })
         .transition()
@@ -552,7 +676,7 @@ function resetZoom() {
         .call(zoom1.transform, d3.zoomIdentity);
 }
 
-// Modify zoomToCounty function to respect bounds
+// Update zoomToCounty to zoom both maps
 function zoomToCounty(event, d) {
     const bounds = path.bounds(d);
     const dx = bounds[1][0] - bounds[0][0];
@@ -560,17 +684,22 @@ function zoomToCounty(event, d) {
     const x = (bounds[0][0] + bounds[1][0]) / 2;
     const y = (bounds[0][1] + bounds[1][1]) / 2;
     
-    // Calculate the scale and translate
     const scale = Math.min(2, 0.9 / Math.max(dx / width, dy / height));
     
-    // Calculate the translation while respecting bounds
     let translate = [width / 2 - scale * x, height / 2 - scale * y];
     translate[0] = Math.min(0, Math.max(width * (1 - scale), translate[0]));
     translate[1] = Math.min(0, Math.max(height * (1 - scale), translate[1]));
     
+    // Zoom both maps
     svg1.transition()
         .duration(750)
         .call(zoom1.transform, d3.zoomIdentity
+            .translate(translate[0], translate[1])
+            .scale(scale));
+            
+    svg2.transition()
+        .duration(750)
+        .call(zoom2.transform, d3.zoomIdentity
             .translate(translate[0], translate[1])
             .scale(scale));
 }
@@ -759,6 +888,3 @@ function createVerticalLegend() {
 
 // Store the updateLegend function when creating the legend
 const updateLegend = createVerticalLegend();
-
-
-
