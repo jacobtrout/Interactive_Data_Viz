@@ -95,6 +95,34 @@ using this in favor of our own copy of Bulma/D3/etc. but that can wait.
             </div>
           </div>
         </div>
+        <div id="map">
+          <p class="block">
+            The
+            <a
+              href="https://www.nass.usda.gov/"
+              >National Agricultural Statistics Service publishes data</a
+            >
+            on crop production by county across the United States<br />
+            Below shows the change in the amount of corn produced in each county between 1980 and 2023.
+          </p>
+          <div class="block">
+            <h3 class="subtitle" id="timeDisplay"></h3>
+            <div id="controls" style="margin: 10px;"></div>
+            <svg id="my_map2"> </svg>
+            <div id="map_controls">
+              <button class="button" id="playPause">Play</button>
+              <button class="button" id="resetZoom">Reset View</button>
+              <input
+                id="timeSlider"
+                class="input"
+                type="range"
+                min="0"
+                max="140"
+                value="0"
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 

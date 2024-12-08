@@ -1,7 +1,13 @@
 const width = 1000;
 const height = 600;
 
-var svg = d3.select("#my_map")
+var svg1 = d3.select("#my_map")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("viewBox", `0 0 ${width} ${height}`)
+    .style("border", "1px solid black");
+
+var svg2 = d3.select("#my_map2")
     .attr("width", width)
     .attr("height", height)
     .attr("viewBox", `0 0 ${width} ${height}`)
@@ -31,18 +37,23 @@ var productionChangeColorScale = d3.scaleThreshold()
 
 var yieldChangeColorScale = d3.scaleThreshold()
     .domain([-25, 0, 25, 50, 75, 100, 125])
-    .range(["#ffd700", ...d3.schemeGreens[6]]); // Yellow (#ffd700) for negative, then greens for positive
+    .range(["#ffd700", "#fff7bc", ...d3.schemeGreens[5]]); // Dark yellow, light yellow, then greens
 
 // Variable to track current metric
 let currentMetric = 'production';
 
 let geojsonData; // To store the full GeoJSON data
 
-// Create groups for each layer (order matters)
-const baseCountiesGroup = svg.append("g").attr("class", "base-counties");
-const choroplethGroup = svg.append("g").attr("class", "choropleth");
-const countiesGroup = svg.append("g").attr("class", "counties");
-const statesGroup = svg.append("g").attr("class", "states");
+// Create groups for each layer for both maps
+const baseCountiesGroup1 = svg1.append("g").attr("class", "base-counties");
+const choroplethGroup1 = svg1.append("g").attr("class", "choropleth");
+const countiesGroup1 = svg1.append("g").attr("class", "counties");
+const statesGroup1 = svg1.append("g").attr("class", "states");
+
+const baseCountiesGroup2 = svg2.append("g").attr("class", "base-counties");
+const choroplethGroup2 = svg2.append("g").attr("class", "choropleth");
+const countiesGroup2 = svg2.append("g").attr("class", "counties");
+const statesGroup2 = svg2.append("g").attr("class", "states");
 
 let years = [];
 
@@ -116,13 +127,13 @@ Promise.all([
     
     // Add this with your other button handlers
     d3.select("#resetZoom").on("click", function() {
-        svg.transition()
+        svg1.transition()
             .duration(750)
-            .call(zoom.transform, d3.zoomIdentity);
+            .call(zoom1.transform, d3.zoomIdentity);
     });
     
     // Add dropdown creation after other UI elements
-    const metricSelector = d3.select("#controls") // Make sure you have a div with id="controls" in your HTML
+    const metricSelector = d3.select("#controls")
         .append("select")
         .attr("id", "metricSelector")
         .style("margin", "10px");
@@ -143,20 +154,27 @@ Promise.all([
     // Add event listener for dropdown
     metricSelector.on("change", function() {
         currentMetric = this.value;
-        updateMap(years[slider.property("value")]);
-        updateLegend(); // We'll create this function
+        const selectedYear = years[d3.select("#timeSlider").property("value")];
+        updateMap(selectedYear);
+        updateLegend();
     });
 });
 
 // Function to draw the base layers on the map
 function drawBaseLayers(statesData, countiesData, USAData) {
- 
-    // 1. Add the USA-wide map as the base layer
-    baseCountiesGroup.selectAll("path.usa")
+    // Draw for first map
+    drawBaseLayersForMap(baseCountiesGroup1, countiesGroup1, statesGroup1, statesData, countiesData, USAData);
+    // Draw for second map
+    drawBaseLayersForMap(baseCountiesGroup2, countiesGroup2, statesGroup2, statesData, countiesData, USAData);
+}
+
+// Helper function to draw layers for a specific map
+function drawBaseLayersForMap(baseGroup, countiesGroup, statesGroup, statesData, countiesData, USAData) {
+    baseGroup.selectAll("path.usa")
         .data(USAData.features)
         .enter().append("path")
-        .attr("class", "usa")  // Assign class for styling
-        .attr("fill", "grey")  // Light grey or any color you want
+        .attr("class", "usa")
+        .attr("fill", "grey")
         .attr("stroke", "black")
         .attr("stroke-width", 1)
         .attr("d", path);
@@ -180,11 +198,16 @@ function drawBaseLayers(statesData, countiesData, USAData) {
         .attr("d", path);
 }
 
-let infoBox = svg.append("g")
+// Create info boxes for both maps
+let infoBox1 = svg1.append("g")
     .attr("class", "info-box")
     .attr("transform", "translate(0, 0)");
 
-infoBox.append("rect")
+let infoBox2 = svg2.append("g")
+    .attr("class", "info-box")
+    .attr("transform", "translate(0, 0)");
+
+infoBox1.append("rect")
     .attr("x", width - 220)
     .attr("y", height - 220)
     .attr("width", 175)
@@ -193,7 +216,24 @@ infoBox.append("rect")
     .attr("stroke", "black")
     .attr("stroke-width", 1);
 
-let countyInfoText = infoBox.append("text")
+let countyInfoText1 = infoBox1.append("text")
+    .attr("x", width - 210)
+    .attr("y", height - 200)
+    .attr("font-size", "12px")
+    .attr("fill", "black")
+    .style("pointer-events", "none")
+    .style("font-family", "Arial, sans-serif");
+
+infoBox2.append("rect")
+    .attr("x", width - 220)
+    .attr("y", height - 220)
+    .attr("width", 175)
+    .attr("height", 150)
+    .attr("fill", "rgba(255, 255, 255, 0.9)")
+    .attr("stroke", "black")
+    .attr("stroke-width", 1);
+
+let countyInfoText2 = infoBox2.append("text")
     .attr("x", width - 210)
     .attr("y", height - 200)
     .attr("font-size", "12px")
@@ -203,49 +243,49 @@ let countyInfoText = infoBox.append("text")
 
 // Update the information box with proper line breaks
 function updateInfoBox(countyName, stateName, year, production, yield, productionChange, yieldChange) {
-    countyInfoText
+    countyInfoText1
         .selectAll("*").remove();  // Remove any existing text
     
     // Append the title
-    countyInfoText.append("tspan")
+    countyInfoText1.append("tspan")
         .attr("x", width - 210)
         .attr("dy", "0em")
         .attr("font-size", "16px")
         .attr("font-weight", "bold")
         .text("County Info");
 
-    countyInfoText.append("tspan")
+    countyInfoText1.append("tspan")
         .attr("x", width - 210)
         .attr("dy", "1.4em")
         .text(`County: ${countyName}`);
 
-    countyInfoText.append("tspan")
+    countyInfoText1.append("tspan")
         .attr("x", width - 210)
         .attr("dy", "1.4em")
         .text(`State: ${stateName}`);
 
-    countyInfoText.append("tspan")
+    countyInfoText1.append("tspan")
         .attr("x", width - 210)
         .attr("dy", "1.4em")
         .text(`Year: ${year}`);
 
-    countyInfoText.append("tspan")
+    countyInfoText1.append("tspan")
         .attr("x", width - 210)
         .attr("dy", "1.4em")
         .text(`5-Year Avg Prod: ${production}`);
 
-    countyInfoText.append("tspan")
+    countyInfoText1.append("tspan")
         .attr("x", width - 210)
         .attr("dy", "1.4em")
         .text(`5-Year Avg Yield: ${yield}`);
 
     // Add the new change metrics
-    countyInfoText.append("tspan")
+    countyInfoText1.append("tspan")
         .attr("x", width - 210)
         .attr("dy", "1.4em")
         .text(`Prod Change from 1980: ${productionChange}`);
 
-    countyInfoText.append("tspan")
+    countyInfoText1.append("tspan")
         .attr("x", width - 210)
         .attr("dy", "1.4em")
         .text(`Yield Change from 1980: ${yieldChange}`);
@@ -257,159 +297,148 @@ function updateMap(selectedYear) {
     const fileName = `output_data/output_${selectedYear}.geojson`;
     
     d3.json(fileName).then(data => {
-        // Add detailed data inspection
-        console.log(`Year ${selectedYear} - Sample Feature Properties:`, 
-            data.features.slice(0, 3).map(f => ({
-                id: f.properties.id,
-                county: f.properties.county_name,
-                state: f.properties.state_name,
-                production: f.properties.rolling_avg_production,
-                yield: f.properties.rolling_yield,
-                rawProperties: f.properties
-            }))
-        );
-
-        // Rest of your existing validation
-        const nonNullValues = data.features.filter(f => 
-            f.properties.rolling_avg_production !== null && 
-            f.properties.rolling_avg_production !== undefined &&
-            !isNaN(f.properties.rolling_avg_production)
-        );
-        
-        console.log(`Year ${selectedYear}:`, {
-            totalFeatures: data.features.length,
-            featuresWithData: nonNullValues.length,
-            sampleValues: nonNullValues.slice(0, 3).map(f => f.properties.rolling_avg_production)
-        });
-
-        // Update existing paths with better error handling
-        const paths = choroplethGroup.selectAll("path")
-            .data(data.features, d => d.properties.id);
-
-        // Update existing paths
-        paths
-            .transition()
-            .duration(750)
-            .attr("fill", d => {
-                let value;
-                switch(currentMetric) {
-                    case 'production':
-                        value = d.properties.rolling_avg_production;
-                        return value === null || value === undefined || isNaN(value) || value === 0 
-                            ? "white" : productionColorScale(value);
-                    case 'yield':
-                        value = d.properties.rolling_yield;
-                        return value === null || value === undefined || isNaN(value) || value === 0 
-                            ? "white" : yieldColorScale(value);
-                    case 'production_change':
-                        value = d.properties.rolling_avg_production_abs_change_from_1980;
-                        return value === null || value === undefined || isNaN(value) 
-                            ? "white" : productionChangeColorScale(value);
-                    case 'yield_change':
-                        value = d.properties.rolling_yield_abs_change_from_1980;
-                        return value === null || value === undefined || isNaN(value) 
-                            ? "white" : yieldChangeColorScale(value);
-                }
-            });
-
-        // Add new paths
-        paths.enter()
-            .append("path")
-            .attr("fill", "white")
-            .attr("d", path)
-            .style("opacity", 0)
-            .on("click", function(event, d) {
-                // Reset the border of the previously clicked county
-                if (lastClickedCounty) {
-                    lastClickedCounty.style("stroke", null).style("stroke-width", null);
-                    lastClickedCounty.style("fill", null);
-                }
-
-                // Set the border color to orange on the clicked county
-                d3.select(this).style("stroke", "orange").style("stroke-width", 3);
-                d3.select(this).style("fill", "orange");
-
-                // Store the current clicked county
-                lastClickedCounty = d3.select(this);
-
-                // Update the information box with all metrics
-                const countyName = d.properties.county_name || 'No name available';
-                const stateName = d.properties.state_name || 'No state available';
-                const year = d.properties.year || 'No year available';
-                const production = d.properties.rolling_avg_production || 'No data available';
-                const yield = d.properties.rolling_yield || 'No data available';
-                const productionChange = d.properties.rolling_avg_production_abs_change_from_1980 || 'No data available';
-                const yieldChange = d.properties.rolling_yield_abs_change_from_1980 || 'No data available';
-
-                // Update the information box with all metrics
-                updateInfoBox(countyName, stateName, year, production, yield, productionChange, yieldChange);
-                
-                // Optionally, you could zoom to the clicked county (if desired)
-                zoomToCounty(event, d);
-            })
-            .transition()
-            .duration(750)
-            .style("opacity", 1)
-            .attr("fill", d => {
-                let value;
-                switch(currentMetric) {
-                    case 'production':
-                        value = d.properties.rolling_avg_production;
-                        return value === null || value === undefined || isNaN(value) || value === 0 
-                            ? "white" : productionColorScale(value);
-                    case 'yield':
-                        value = d.properties.rolling_yield;
-                        return value === null || value === undefined || isNaN(value) || value === 0 
-                            ? "white" : yieldColorScale(value);
-                    case 'production_change':
-                        value = d.properties.rolling_avg_production_abs_change_from_1980;
-                        return value === null || value === undefined || isNaN(value) 
-                            ? "white" : productionChangeColorScale(value);
-                    case 'yield_change':
-                        value = d.properties.rolling_yield_abs_change_from_1980;
-                        return value === null || value === undefined || isNaN(value) 
-                            ? "white" : yieldChangeColorScale(value);
-                }
-            });
-
-        // Remove old paths
-        paths.exit()
-            .transition()
-            .duration(750)
-            .style("opacity", 0)
-            .remove();
-
+        // Special handling for production and yield
+        if (currentMetric === 'production') {
+            updateMapData(choroplethGroup1, data, 'production');
+            updateMapData(choroplethGroup2, data, 'production_change');
+        } else if (currentMetric === 'yield') {
+            updateMapData(choroplethGroup1, data, 'yield');
+            updateMapData(choroplethGroup2, data, 'yield_change');
+        } else {
+            // For all other metrics, show the same metric on both maps
+            updateMapData(choroplethGroup1, data, currentMetric);
+            updateMapData(choroplethGroup2, data, currentMetric);
+        }
     }).catch(error => {
         console.error(`Error loading data for year ${selectedYear}:`, error);
     });
 }
 
-// Set up Zoom Behavior
-const zoom = d3.zoom()
-    .scaleExtent([1, 8])
-    .translateExtent([[0, 0], [width, height]])
-    .extent([[0, 0], [width, height]])
-    .on("zoom", event => {
-        // Get the current transform
-        const transform = event.transform;
-        
-        // Clamp the x and y translations to keep the map in view
-        transform.x = Math.min(0, Math.max(width * (1 - transform.k), transform.x));
-        transform.y = Math.min(0, Math.max(height * (1 - transform.k), transform.y));
-        
-        // Apply the clamped transform to map layers only (exclude info box)
-        const layers = [baseCountiesGroup, choroplethGroup, countiesGroup, statesGroup];
-        layers.forEach(layer => layer.attr("transform", transform));
-        
-        // Remove this line to keep info box stationary
-        // infoBox.attr("transform", `translate(${transform.x}, ${transform.y})`);
-    });
+// Helper function to update map data
+function updateMapData(choroplethGroup, data, metric) {
+    const paths = choroplethGroup.selectAll("path")
+        .data(data.features, d => d.properties.id);
+
+    // Update existing paths with better error handling
+    paths
+        .transition()
+        .duration(750)
+        .attr("fill", d => {
+            let value;
+            switch(metric) {
+                case 'production':
+                    value = d.properties.rolling_avg_production;
+                    return value === null || value === undefined || isNaN(value) || value === 0 
+                        ? "white" : productionColorScale(value);
+                case 'yield':
+                    value = d.properties.rolling_yield;
+                    return value === null || value === undefined || isNaN(value) || value === 0 
+                        ? "white" : yieldColorScale(value);
+                case 'production_change':
+                    value = d.properties.rolling_avg_production_abs_change_from_1980;
+                    return value === null || value === undefined || isNaN(value) 
+                        ? "white" : productionChangeColorScale(value);
+                case 'yield_change':
+                    value = d.properties.rolling_yield_abs_change_from_1980;
+                    return value === null || value === undefined || isNaN(value) 
+                        ? "white" : yieldChangeColorScale(value);
+            }
+        });
+
+    // Add new paths
+    paths.enter()
+        .append("path")
+        .attr("fill", "white")
+        .attr("d", path)
+        .style("opacity", 0)
+        .on("click", function(event, d) {
+            // Reset the border of the previously clicked county
+            if (lastClickedCounty) {
+                lastClickedCounty.style("stroke", null).style("stroke-width", null);
+                lastClickedCounty.style("fill", null);
+            }
+
+            // Set the border color to orange on the clicked county
+            d3.select(this).style("stroke", "orange").style("stroke-width", 3);
+            d3.select(this).style("fill", "orange");
+
+            // Store the current clicked county
+            lastClickedCounty = d3.select(this);
+
+            // Update the information box with all metrics
+            const countyName = d.properties.county_name || 'No name available';
+            const stateName = d.properties.state_name || 'No state available';
+            const year = d.properties.year || 'No year available';
+            const production = d.properties.rolling_avg_production || 'No data available';
+            const yield = d.properties.rolling_yield || 'No data available';
+            const productionChange = d.properties.rolling_avg_production_abs_change_from_1980 || 'No data available';
+            const yieldChange = d.properties.rolling_yield_abs_change_from_1980 || 'No data available';
+
+            // Update the information box with all metrics
+            updateInfoBox(countyName, stateName, year, production, yield, productionChange, yieldChange);
+            
+            // Optionally, you could zoom to the clicked county (if desired)
+            zoomToCounty(event, d);
+        })
+        .transition()
+        .duration(750)
+        .style("opacity", 1)
+        .attr("fill", d => {
+            let value;
+            switch(metric) {
+                case 'production':
+                    value = d.properties.rolling_avg_production;
+                    return value === null || value === undefined || isNaN(value) || value === 0 
+                        ? "white" : productionColorScale(value);
+                case 'yield':
+                    value = d.properties.rolling_yield;
+                    return value === null || value === undefined || isNaN(value) || value === 0 
+                        ? "white" : yieldColorScale(value);
+                case 'production_change':
+                    value = d.properties.rolling_avg_production_abs_change_from_1980;
+                    return value === null || value === undefined || isNaN(value) 
+                        ? "white" : productionChangeColorScale(value);
+                case 'yield_change':
+                    value = d.properties.rolling_yield_abs_change_from_1980;
+                    return value === null || value === undefined || isNaN(value) 
+                        ? "white" : yieldChangeColorScale(value);
+            }
+        });
+
+    // Remove old paths
+    paths.exit()
+        .transition()
+        .duration(750)
+        .style("opacity", 0)
+        .remove();
+}
+
+// Set up zoom behavior for both maps
+const zoom1 = setupZoom(svg1, [baseCountiesGroup1, choroplethGroup1, countiesGroup1, statesGroup1]);
+const zoom2 = setupZoom(svg2, [baseCountiesGroup2, choroplethGroup2, countiesGroup2, statesGroup2]);
+
+// Helper function to set up zoom
+function setupZoom(svg, layers) {
+    const zoom = d3.zoom()
+        .scaleExtent([1, 8])
+        .translateExtent([[0, 0], [width, height]])
+        .extent([[0, 0], [width, height]])
+        .on("zoom", event => {
+            const transform = event.transform;
+            transform.x = Math.min(0, Math.max(width * (1 - transform.k), transform.x));
+            transform.y = Math.min(0, Math.max(height * (1 - transform.k), transform.y));
+            layers.forEach(layer => layer.attr("transform", transform));
+        });
+
+    svg.call(zoom);
+    return zoom;
+}
 
 // Function to reset zoom
 function resetZoom() {
-    svg.transition()
+    svg1.transition()
         .duration(750)
-        .call(zoom.transform, d3.zoomIdentity);
+        .call(zoom1.transform, d3.zoomIdentity);
 }
 
 // Modify zoomToCounty function to respect bounds
@@ -428,86 +457,119 @@ function zoomToCounty(event, d) {
     translate[0] = Math.min(0, Math.max(width * (1 - scale), translate[0]));
     translate[1] = Math.min(0, Math.max(height * (1 - scale), translate[1]));
     
-    svg.transition()
+    svg1.transition()
         .duration(750)
-        .call(zoom.transform, d3.zoomIdentity
+        .call(zoom1.transform, d3.zoomIdentity
             .translate(translate[0], translate[1])
             .scale(scale));
 }
 
-// Make sure to attach the zoom behavior to the SVG
-svg.call(zoom);
-
 function createVerticalLegend() {
     // Set up smaller legend dimensions
-    const legendWidth = 150;
+    const legendWidth = 200;
     const legendHeight = 190;
     const legendItemHeight = 15;
     const legendSpacing = 5;
     const titleHeight = 20;
 
-    // Create a group element for the legend
-    const legendGroup = svg.append("g")
+    // Create legend groups for both maps
+    const legendGroup1 = svg1.append("g")
         .attr("class", "legend")
-        .attr("transform", `translate(${width - legendWidth - 20}, 20)`); // Position legend in the top-right corner
+        .attr("transform", `translate(${width - legendWidth - 20}, 20)`);
 
-    // Add a background for the legend
-    legendGroup.append("rect")
-        .attr("width", legendWidth)
-        .attr("height", legendHeight)
-        .attr("fill", "rgba(255, 255, 255, 0.9)")
-        .attr("stroke", "black")
-        .attr("stroke-width", 1);
+    const legendGroup2 = svg2.append("g")
+        .attr("class", "legend")
+        .attr("transform", `translate(${width - legendWidth - 20}, 20)`);
 
-    // Add title for the legend
-    legendGroup.append("text")
-        .attr("class", "legend-title")
-        .attr("x", legendWidth / 2)
-        .attr("y", titleHeight / 2 + 5)
-        .attr("text-anchor", "middle")
-        .style("font-size", "14px")
-        .style("font-family", "Arial, sans-serif")
-        .style("font-weight", "bold");
+    // Add backgrounds for both legends
+    [legendGroup1, legendGroup2].forEach(group => {
+        group.append("rect")
+            .attr("width", legendWidth)
+            .attr("height", legendHeight)
+            .attr("fill", "rgba(255, 255, 255, 0.9)")
+            .attr("stroke", "black")
+            .attr("stroke-width", 1);
+
+        group.append("text")
+            .attr("class", "legend-title")
+            .attr("x", legendWidth / 2)
+            .attr("y", titleHeight / 2 + 5)
+            .attr("text-anchor", "middle")
+            .style("font-size", "14px")
+            .style("font-family", "Arial, sans-serif")
+            .style("font-weight", "bold");
+    });
 
     function updateLegend() {
-        let legendLabels, legendColors;
+        // Create legend data for all metrics
+        const productionLabels = ["0 - 10M", "10M - 20M", "20M - 30M", "30M - 40M", "40M - 50M", "50M - 60M", "> 60M", "No Data"];
+        const productionColors = [...d3.schemeGreens[7], "white"];
         
-        switch(currentMetric) {
-            case 'production':
-                legendLabels = ["0 - 10M", "10M - 20M", "20M - 30M", "30M - 40M", "40M - 50M", "50M - 60M", "> 60M", "No Data"];
-                legendColors = [...d3.schemeGreens[7], "white"];
-                break;
-            case 'yield':
-                legendLabels = ["0 - 35", "35 - 70", "70 - 105", "105 - 140", "140 - 175", "175 - 210", "> 210", "No Data"];
-                legendColors = [...d3.schemeGreens[7], "white"];
-                break;
-            case 'production_change':
-                legendLabels = ["< 0", "0 - 5M", "5M - 10M", "10M - 15M", "15M - 20M", "20M - 30M", "> 30M", "No Data"];
-                legendColors = ["#ffd700", ...d3.schemeGreens[6], "white"]; // Yellow, then greens, then white for no data
-                break;
-            case 'yield_change':
-                legendLabels = ["< -25", "-25 to 0", "0 to 25", "25 to 50", "50 to 75", "75 to 100", "> 100", "No Data"];
-                legendColors = ["#ffd700", ...d3.schemeGreens[6], "white"]; // Yellow, then greens, then white for no data
-                break;
+        const yieldLabels = ["0 - 35", "35 - 70", "70 - 105", "105 - 140", "140 - 175", "175 - 210", "> 210", "No Data"];
+        const yieldColors = [...d3.schemeGreens[7], "white"];
+
+        const productionChangeLabels = ["< 0", "0 - 5M", "5M - 10M", "10M - 15M", "15M - 20M", "20M - 30M", "> 30M", "No Data"];
+        const productionChangeColors = ["#ffd700", ...d3.schemeGreens[6], "white"];
+
+        const yieldChangeLabels = ["< -25", "-25 - 0", "0 - 25", "25 - 50", "50 - 75", "75 - 100", "> 100", "No Data"];
+        const yieldChangeColors = ["#ffd700", "#fff7bc", ...d3.schemeGreens[5], "white"];
+
+        // Get legend config for both maps
+        let legend1Title, legend1Labels, legend1Colors;
+        let legend2Title, legend2Labels, legend2Colors;
+
+        // Special handling for production and yield
+        if (currentMetric === 'production') {
+            // First legend - Production
+            legend1Title = "Production (bushels)";
+            legend1Labels = productionLabels;
+            legend1Colors = productionColors;
+            
+            // Second legend - Production Change
+            legend2Title = "Production Change from 1980";
+            legend2Labels = productionChangeLabels;
+            legend2Colors = productionChangeColors;
+        } else if (currentMetric === 'yield') {
+            // First legend - Yield
+            legend1Title = "Yield (bushels/acre)";
+            legend1Labels = yieldLabels;
+            legend1Colors = yieldColors;
+            
+            // Second legend - Yield Change
+            legend2Title = "Yield Change from 1980";
+            legend2Labels = yieldChangeLabels;
+            legend2Colors = yieldChangeColors;
+        } else {
+            // For all other metrics, use the same legend for both maps
+            switch(currentMetric) {
+                case 'production_change':
+                    legend1Title = legend2Title = "Production Change from 1980";
+                    legend1Labels = legend2Labels = productionChangeLabels;
+                    legend1Colors = legend2Colors = productionChangeColors;
+                    break;
+                case 'yield_change':
+                    legend1Title = legend2Title = "Yield Change from 1980";
+                    legend1Labels = legend2Labels = yieldChangeLabels;
+                    legend1Colors = legend2Colors = yieldChangeColors;
+                    break;
+            }
         }
 
-        // Update legend title
-        const titles = {
-            'production': "Production (bushels)",
-            'yield': "Yield (bushels/acre)",
-            'production_change': "Production Change (bushels)",
-            'yield_change': "Yield Change (bushels/acre)"
-        };
-        
-        legendGroup.select(".legend-title")
-            .text(titles[currentMetric]);
+        // Update titles and legends
+        legendGroup1.select(".legend-title").text(legend1Title);
+        legendGroup2.select(".legend-title").text(legend2Title);
 
+        updateSingleLegend(legendGroup1, legend1Labels, legend1Colors);
+        updateSingleLegend(legendGroup2, legend2Labels, legend2Colors);
+    }
+
+    function updateSingleLegend(group, labels, colors) {
         // Remove existing legend items
-        legendGroup.selectAll(".legend-item").remove();
+        group.selectAll(".legend-item").remove();
 
         // Create new legend items
-        const legendItems = legendGroup.selectAll(".legend-item")
-            .data(legendLabels)
+        const legendItems = group.selectAll(".legend-item")
+            .data(labels)
             .enter()
             .append("g")
             .attr("class", "legend-item")
@@ -517,7 +579,7 @@ function createVerticalLegend() {
         legendItems.append("rect")
             .attr("width", 15)
             .attr("height", legendItemHeight)
-            .attr("fill", (d, i) => legendColors[i])
+            .attr("fill", (d, i) => colors[i])
             .attr("stroke", "black")
             .attr("stroke-width", 0.5);
 
@@ -534,7 +596,6 @@ function createVerticalLegend() {
     // Initial legend creation
     updateLegend();
 
-    // Return the updateLegend function so it can be called from outside
     return updateLegend;
 }
 
