@@ -372,28 +372,18 @@ let countyInfoText2 = infoBox2.append("text")
     .style("font-family", "Arial, sans-serif");
 
 // Update the information box with proper line breaks
-function updateInfoBox(countyName, stateName, year, production, yield, productionChange, yieldChange, avgTemp, avgPrecip, tempChange, precipChange) {
+function updateInfoBox(countyName, stateAlpha, year, production, yield, productionChange, yieldChange, avgTemp, avgPrecip, tempChange, precipChange) {
     // Update first info box
     countyInfoText1
         .selectAll("*").remove();  // Remove any existing text
     
-    // Append the title
+    // Append the title with county and state
     countyInfoText1.append("tspan")
         .attr("x", width - 210)
         .attr("dy", "0em")
         .attr("font-size", "16px")
         .attr("font-weight", "bold")
-        .text("County Info");
-
-    countyInfoText1.append("tspan")
-        .attr("x", width - 210)
-        .attr("dy", "1.4em")
-        .text(`County: ${countyName}`);
-
-    countyInfoText1.append("tspan")
-        .attr("x", width - 210)
-        .attr("dy", "1.4em")
-        .text(`State: ${stateName}`);
+        .text(`${countyName}, ${stateAlpha}`);
 
     countyInfoText1.append("tspan")
         .attr("x", width - 210)
@@ -413,34 +403,24 @@ function updateInfoBox(countyName, stateName, year, production, yield, productio
     countyInfoText1.append("tspan")
         .attr("x", width - 210)
         .attr("dy", "1.4em")
-        .text(`Temperature Change: ${avgTemp}`);
+        .text(`Temperature: ${avgTemp}`);
 
     countyInfoText1.append("tspan")
         .attr("x", width - 210)
         .attr("dy", "1.4em")
-        .text(`Average Precipitation: ${avgPrecip}`);
+        .text(`Precipitation: ${avgPrecip}`);
 
     // Update second info box
     countyInfoText2
         .selectAll("*").remove();  // Remove any existing text
     
-    // Append the title
+    // Append the title with county and state
     countyInfoText2.append("tspan")
         .attr("x", width - 210)
         .attr("dy", "0em")
         .attr("font-size", "16px")
         .attr("font-weight", "bold")
-        .text("County Info");
-
-    countyInfoText2.append("tspan")
-        .attr("x", width - 210)
-        .attr("dy", "1.4em")
-        .text(`County: ${countyName}`);
-
-    countyInfoText2.append("tspan")
-        .attr("x", width - 210)
-        .attr("dy", "1.4em")
-        .text(`State: ${stateName}`);
+        .text(`${countyName}, ${stateAlpha}`);
 
     countyInfoText2.append("tspan")
         .attr("x", width - 210)
@@ -455,7 +435,7 @@ function updateInfoBox(countyName, stateName, year, production, yield, productio
     countyInfoText2.append("tspan")
         .attr("x", width - 210)
         .attr("dy", "1.4em")
-        .text(`Yield Change from 1980: ${yieldChange}`);
+        .text(`Yield Change: ${yieldChange}`);
 
     countyInfoText2.append("tspan")
         .attr("x", width - 210)
@@ -582,7 +562,7 @@ function updateMapData(choroplethGroup, data, metric) {
 
             // Update the information box
             const countyName = d.properties.county_name || 'No name available';
-            const stateName = d.properties.state_name || 'No state available';
+            const stateAlpha = d.properties.state_alpha || 'No state available';
             const year = d.properties.year || 'No year available';
             const production = d.properties.rolling_avg_production || 'No data available';
             const yield = d.properties.rolling_yield || 'No data available';
@@ -594,7 +574,7 @@ function updateMapData(choroplethGroup, data, metric) {
             const precipChange = d.properties.ann_avg_precip_abs_change_from_1980 || 'No data available';
 
             // Update the information box with all metrics
-            updateInfoBox(countyName, stateName, year, production, yield, productionChange, yieldChange, avgTemp, avgPrecip, tempChange, precipChange);
+            updateInfoBox(countyName, stateAlpha, year, production, yield, productionChange, yieldChange, avgTemp, avgPrecip, tempChange, precipChange);
             
             // Zoom both maps to the clicked county
             zoomToCounty(event, d);

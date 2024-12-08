@@ -1,0 +1,90 @@
+#pyramids {
+    width: 700px;
+  }
+  .inverted {
+    background-color: #ffffee;
+    padding: 3px;
+  }
+  body {
+    background-color: #333333;
+    color: #ffffee;
+  }
+  h3.subtitle {
+    color: rgb(253, 141, 60);
+    text-align: center;
+  }
+  a {
+    color: rgb(253, 141, 60);
+  }
+  a:hover {
+    text-decoration: underline;
+  }
+  #pyramidControls {
+    display: grid;
+    grid-template-columns: 1fr 9fr;
+  }
+  
+  
+  #legend-container {
+    margin-left: 20px;  /* Space between the map and the legend */
+    width: 250px;       /* Width of the legend */
+  }
+  
+  
+  
+  #legend {
+    width: 200px;       /* Adjust the legend size */
+    height: auto;       /* Allow the legend to scale vertically */
+  }
+  
+  #countyInfoText {
+    white-space: pre-line;
+    word-wrap: break-word;
+    font-family: Arial, sans-serif;
+    line-height: 1.5;
+  }
+
+  /* Slider base styles */
+#timeSlider {
+  position: fixed;
+  right: 20px;
+  top: 100px;
+  transform-origin: right;
+  width: 400px;
+  z-index: 1000;
+  margin-bottom: 25px;
+  appearance: none;
+  -webkit-appearance: none;
+  background: #d3d3d3;
+  height: 5px;
+  border-radius: 5px;
+  outline: none;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+/* Slider hover state */
+#timeSlider:hover {
+  opacity: 1;
+}
+
+/* Slider thumb styles for webkit browsers */
+#timeSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  background: #4CAF50;
+  cursor: pointer;
+  border-radius: 50%;
+}
+
+/* Slider thumb styles for Firefox */
+#timeSlider::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  background: #4CAF50;
+  cursor: pointer;
+  border-radius: 50%;
+  border: none;
+} 

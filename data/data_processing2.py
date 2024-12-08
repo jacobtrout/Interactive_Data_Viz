@@ -77,6 +77,7 @@ def get_annual_data(conn, crop_table, area_table):
     production_query = f"""
     SELECT 
         state_name,
+        state_alpha,
         county_name,
         year,
         value AS annual_production,
