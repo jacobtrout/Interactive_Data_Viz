@@ -18,13 +18,41 @@ MIDWESTERN_STATE_IDS = [17, 18, 19, 20, 26, 27, 29, 31, 38, 39, 46, 55]
 
 
 def load_midwest_counties(conn, table, counties_gdf):
+    # Fetch distinct state_ansi values as a list
     query = f"SELECT DISTINCT state_ansi FROM {table}"
-    state_ansi_list = pd.read_sql(query, conn).iloc[:, 0].to_list()
+    state_ansi_list = pd.read_sql(query, conn).squeeze().tolist()
+
+    # Filter counties based on state_ansi and id length
     midwest_counties_gdf = counties_gdf[
         counties_gdf["id"].str[:2].isin(state_ansi_list)
         & (counties_gdf["id"].str.len() == 5)
     ]
-    return midwest_counties_gdf
+
+    # Remove duplicated 'id' values
+    midwest_counties_gdf_no_duplicates = midwest_counties_gdf.drop_duplicates(
+        subset="id", keep=False
+    )
+
+    # Group duplicated counties and merge geometries
+    duplicated_counties_gdf = midwest_counties_gdf[
+        midwest_counties_gdf.duplicated("id", keep=False)
+    ]
+    results = [
+        {"id": county, "geometry": county_records.geometry.unary_union}
+        for county, county_records in duplicated_counties_gdf.groupby("id")
+    ]
+
+    # Create GeoDataFrame for merged geometries
+    duplicated_counties_multi_gdf = gpd.GeoDataFrame(results, crs=counties_gdf.crs)
+
+    # Concatenate and return the final GeoDataFrame
+    final_counties_gdf = pd.concat(
+        [midwest_counties_gdf_no_duplicates, duplicated_counties_multi_gdf],
+        ignore_index=True,
+    )
+    final_counties_gdf = gpd.GeoDataFrame(final_counties_gdf, crs=counties_gdf.crs)
+
+    return final_counties_gdf
 
 
 def get_annual_corn_production(conn, table):
@@ -112,9 +140,11 @@ annual_data["rolling_area"] = annual_data.groupby("id")["annual_area"].transform
 )
 
 # Add rolling average production calculation
-annual_data["rolling_avg_production"] = annual_data.groupby("id")[
-    "annual_production"
-].transform(lambda x: x.rolling(window=5, min_periods=1).mean())
+annual_data["rolling_avg_production"] = (
+    annual_data.groupby("id")["annual_production"]
+    .transform(lambda x: x.rolling(window=5, min_periods=1).mean())
+    .round(2)
+)
 
 # Calculate yield based on rolling totals and round
 annual_data["rolling_yield"] = (
@@ -337,6 +367,28 @@ merged.set_geometry("geometry", inplace=True)
 
 # Filter data
 output_df = merged[(merged["year"] >= 1980) & (merged["year"] <= 2023)]
+output_df.set_crs("EPSG:4326", inplace=True)
+
+df = output_df.sort_values(by=["id", "year"])
+
+features = ["rolling_avg_production", "rolling_yield", "ann_avg_temp", "ann_avg_precip"]
+
+for feature in features:
+    first_year_values = df[df["year"] == 1980].set_index("id")[feature]
+    df[f"{feature}_1980"] = df["id"].map(first_year_values)
+    df[f"{feature}_abs_change_from_1980"] = (df[feature] - df[f"{feature}_1980"]).round(
+        2
+    )
+    df[f"{feature}_percentage_change_from_1980"] = (
+        df[f"{feature}_abs_change_from_1980"] / df[f"{feature}_1980"]
+    ) * 100
+    df[f"{feature}_percentage_change_from_1980"] = df[
+        f"{feature}_percentage_change_from_1980"
+    ].round(2)
+    # Drop the temporary _1980 column after calculations
+    df = df.drop(columns=[f"{feature}_1980"])
+
+output_df = df
 output_df.set_crs("EPSG:4326", inplace=True)
 
 # Save to GeoJSON
