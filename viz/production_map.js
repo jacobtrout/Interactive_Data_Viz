@@ -243,6 +243,7 @@ let countyInfoText2 = infoBox2.append("text")
 
 // Update the information box with proper line breaks
 function updateInfoBox(countyName, stateName, year, production, yield, productionChange, yieldChange) {
+    // Update first info box
     countyInfoText1
         .selectAll("*").remove();  // Remove any existing text
     
@@ -279,13 +280,59 @@ function updateInfoBox(countyName, stateName, year, production, yield, productio
         .attr("dy", "1.4em")
         .text(`5-Year Avg Yield: ${yield}`);
 
-    // Add the new change metrics
     countyInfoText1.append("tspan")
         .attr("x", width - 210)
         .attr("dy", "1.4em")
         .text(`Prod Change from 1980: ${productionChange}`);
 
     countyInfoText1.append("tspan")
+        .attr("x", width - 210)
+        .attr("dy", "1.4em")
+        .text(`Yield Change from 1980: ${yieldChange}`);
+
+    // Update second info box
+    countyInfoText2
+        .selectAll("*").remove();  // Remove any existing text
+    
+    // Append the title
+    countyInfoText2.append("tspan")
+        .attr("x", width - 210)
+        .attr("dy", "0em")
+        .attr("font-size", "16px")
+        .attr("font-weight", "bold")
+        .text("County Info");
+
+    countyInfoText2.append("tspan")
+        .attr("x", width - 210)
+        .attr("dy", "1.4em")
+        .text(`County: ${countyName}`);
+
+    countyInfoText2.append("tspan")
+        .attr("x", width - 210)
+        .attr("dy", "1.4em")
+        .text(`State: ${stateName}`);
+
+    countyInfoText2.append("tspan")
+        .attr("x", width - 210)
+        .attr("dy", "1.4em")
+        .text(`Year: ${year}`);
+
+    countyInfoText2.append("tspan")
+        .attr("x", width - 210)
+        .attr("dy", "1.4em")
+        .text(`5-Year Avg Prod: ${production}`);
+
+    countyInfoText2.append("tspan")
+        .attr("x", width - 210)
+        .attr("dy", "1.4em")
+        .text(`5-Year Avg Yield: ${yield}`);
+
+    countyInfoText2.append("tspan")
+        .attr("x", width - 210)
+        .attr("dy", "1.4em")
+        .text(`Prod Change from 1980: ${productionChange}`);
+
+    countyInfoText2.append("tspan")
         .attr("x", width - 210)
         .attr("dy", "1.4em")
         .text(`Yield Change from 1980: ${yieldChange}`);
