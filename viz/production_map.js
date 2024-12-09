@@ -840,7 +840,7 @@ function createVerticalLegend() {
             legend2Colors = yieldChangeColors;
         } else if (currentMetric === 'temperature') {
             // First legend - Temperature
-            legend1Title = "Annual Average Temperature";
+            legend1Title = "Average Temperature";
             legend1Labels = temperatureLabels;
             legend1Colors = temperatureColors;
             
@@ -850,7 +850,7 @@ function createVerticalLegend() {
             legend2Colors = temperatureChangeColors;
         } else if (currentMetric === 'precipitation') {
             // First legend - Precipitation
-            legend1Title = "Annual Average Precipitation";
+            legend1Title = "Average Precipitation";
             legend1Labels = precipitationLabels;
             legend1Colors = precipitationColors;
             
@@ -858,40 +858,16 @@ function createVerticalLegend() {
             legend2Title = "Change in Precipitation";
             legend2Labels = precipitationChangeLabels;
             legend2Colors = precipitationChangeColors;
-        } else {
-            // For all other metrics, use the same legend for both maps
-            switch(currentMetric) {
-                case 'production_change':
-                    legend1Title = legend2Title = "Production Change from 1980";
-                    legend1Labels = legend2Labels = productionChangeLabels;
-                    legend1Colors = legend2Colors = productionChangeColors;
-                    break;
-                case 'yield_change':
-                    legend1Title = legend2Title = "Yield Change from 1980";
-                    legend1Labels = legend2Labels = yieldChangeLabels;
-                    legend1Colors = legend2Colors = yieldChangeColors;
-                    break;
-                case 'temperature':
-                    legend1Title = legend2Title = "Annual Average Temperature";
-                    legend1Labels = legend2Labels = temperatureLabels;
-                    legend1Colors = legend2Colors = temperatureColors;
-                    break;
-                case 'temperature_change':
-                    legend1Title = legend2Title = "Temperature Change from 1980 (°F)";
-                    legend1Labels = legend2Labels = temperatureChangeLabels;
-                    legend1Colors = legend2Colors = temperatureChangeColors;
-                    break;
-                case 'precipitation':
-                    legend1Title = legend2Title = "Annual Average Precipitation";
-                    legend1Labels = legend2Labels = precipitationLabels;
-                    legend1Colors = legend2Colors = precipitationColors;
-                    break;
-            }
         }
 
         // Update titles and legends
-        legendGroup1.select(".legend-title").text(legend1Title);
-        legendGroup2.select(".legend-title").text(legend2Title);
+        legendGroup1.select(".legend-title")
+            .text(legend1Title)
+            .style("font-size", "16px");
+
+        legendGroup2.select(".legend-title")
+            .text(legend2Title)
+            .style("font-size", "16px");
 
         updateSingleLegend(legendGroup1, legend1Labels, legend1Colors);
         updateSingleLegend(legendGroup2, legend2Labels, legend2Colors);
@@ -922,7 +898,7 @@ function createVerticalLegend() {
             .attr("x", 20)
             .attr("y", legendItemHeight / 2)
             .attr("dy", "0.35em")
-            .style("font-size", "12px")
+            .style("font-size", "14px")
             .style("font-family", "Arial, sans-serif")
             .text(d => d);
     }
