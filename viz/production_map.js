@@ -102,7 +102,7 @@ Promise.all([
         .property("value", 0)
         .style("position", "fixed")
         .style("right", "20px")
-        .style("top", "80px")
+        .style("top", "240px")
         .style("transform-origin", "right")
         .style("width", "320px")
         .style("z-index", "1000")
@@ -165,15 +165,16 @@ Promise.all([
     const timeDisplay = d3.select("#timeDisplay")
         .style("position", "fixed")
         .style("right", "20px")
-        .style("top", "20px")
+        .style("top", "180px")
         .style("transform", "none")
         .style("z-index", "1000")
         .style("font-size", "24px")
         .style("font-weight", "bold")
-        .style("color", "#333")
-        .style("background-color", "rgba(255, 255, 255, 0.9)")
+        .style("color", "black")
+        .style("background-color", "rgba(210, 180, 140, 0.95)")
         .style("padding", "10px 20px")
         .style("border-radius", "4px")
+        .style("border", "1px solid black")
         .style("box-shadow", "0 2px 5px rgba(0,0,0,0.1)")
         .style("width", "120px")
         .style("text-align", "center");
@@ -218,33 +219,59 @@ Promise.all([
         }
     });
     
-    // Add this with your other button handlers
+    // Style and position the reset zoom button
+    d3.select("#resetZoom")
+        .style("position", "fixed")
+        .style("right", "120px")
+        .style("top", "270px")
+        .style("z-index", "1000")
+        .style("padding", "10px 20px")
+        .style("font-size", "16px")
+        .style("cursor", "pointer")
+        .style("background-color", "rgba(210, 180, 140, 0.95)")
+        .style("color", "black")
+        .style("border", "1px solid black")
+        .style("border-radius", "4px")
+        .style("box-shadow", "0 2px 5px rgba(0,0,0,0.2)")
+        .style("margin-right", "10px")
+        .on("mouseover", function() {
+            d3.select(this).style("background-color", "rgba(190, 160, 120, 0.95)")
+        })
+        .on("mouseout", function() {
+            d3.select(this).style("background-color", "rgba(210, 180, 140, 0.95)")
+        });
+
+    // Add click handler for reset zoom
     d3.select("#resetZoom").on("click", function() {
         svg1.transition()
             .duration(750)
             .call(zoom1.transform, d3.zoomIdentity);
+        
+        svg2.transition()
+            .duration(750)
+            .call(zoom2.transform, d3.zoomIdentity);
     });
-    
+
     // Update play button position
     const playButton = d3.select("#playPause")
         .style("position", "fixed")
         .style("right", "20px")     // Aligned with slider
-        .style("top", "110px")      // Positioned below slider
+        .style("top", "270px")      // Positioned below slider
         .style("transform", "none")
         .style("z-index", "1000")
         .style("padding", "10px 20px")
         .style("font-size", "16px")
         .style("cursor", "pointer")
-        .style("background-color", "#4CAF50")
-        .style("color", "white")
-        .style("border", "none")
+        .style("background-color", "rgba(210, 180, 140, 0.95)")
+        .style("color", "black")
+        .style("border", "1px solid black")
         .style("border-radius", "4px")
         .style("box-shadow", "0 2px 5px rgba(0,0,0,0.2)")
         .on("mouseover", function() {
-            d3.select(this).style("background-color", "#45a049")
+            d3.select(this).style("background-color", "rgba(190, 160, 120, 0.95)")
         })
         .on("mouseout", function() {
-            d3.select(this).style("background-color", "#4CAF50")
+            d3.select(this).style("background-color", "rgba(210, 180, 140, 0.95)")
         });
 
     // Update dropdown position to be next to year display
@@ -253,16 +280,19 @@ Promise.all([
         .attr("id", "metricSelector")
         .style("position", "fixed")
         .style("right", "150px")
-        .style("top", "20px")
+        .style("top", "180px")
         .style("z-index", "1000")
         .style("padding", "10px 10px")
-        .style("font-size", "14px")
+        .style("font-size", "16px")
+        .style("font-weight", "bold")
         .style("border-radius", "4px")
-        .style("border", "1px solid #ccc")
-        .style("background-color", "white")
+        .style("border", "1px solid black")
+        .style("background-color", "rgba(210, 180, 140, 0.95)")
+        .style("color", "black")
         .style("cursor", "pointer")
         .style("height", "50px")
         .style("width", "190px")
+        .style("box-shadow", "0 2px 5px rgba(0,0,0,0.1)")
         .style("overflow", "hidden")
         .style("text-overflow", "ellipsis");
 
@@ -342,7 +372,7 @@ infoBox1.append("rect")
     .attr("y", height - 220)
     .attr("width", 175)
     .attr("height", 150)
-    .attr("fill", "rgba(255, 255, 255, 0.9)")
+    .attr("fill", "rgba(210, 180, 140, 0.95)")
     .attr("stroke", "black")
     .attr("stroke-width", 1);
 
@@ -359,7 +389,7 @@ infoBox2.append("rect")
     .attr("y", height - 220)
     .attr("width", 175)
     .attr("height", 150)
-    .attr("fill", "rgba(255, 255, 255, 0.9)")
+    .attr("fill", "rgba(210, 180, 140, 0.95)")
     .attr("stroke", "black")
     .attr("stroke-width", 1);
 
@@ -373,6 +403,15 @@ let countyInfoText2 = infoBox2.append("text")
 
 // Update the information box with proper line breaks
 function updateInfoBox(countyName, stateAlpha, year, production, yield, productionChange, yieldChange, avgTemp, avgPrecip, tempChange, precipChange) {
+    // Format production to millions with 1 decimal place
+    const productionInMillions = production !== 'No data available' 
+        ? `${(production / 1000000).toFixed(1)}M` 
+        : 'No data available';
+    
+    const productionChangeInMillions = productionChange !== 'No data available'
+        ? `${(productionChange / 1000000).toFixed(1)}M`
+        : 'No data available';
+
     // Update first info box
     countyInfoText1
         .selectAll("*").remove();  // Remove any existing text
@@ -393,7 +432,7 @@ function updateInfoBox(countyName, stateAlpha, year, production, yield, producti
     countyInfoText1.append("tspan")
         .attr("x", width - 210)
         .attr("dy", "1.4em")
-        .text(`5-Year Avg Prod: ${production}`);
+        .text(`5-Year Avg Prod: ${productionInMillions}`);
 
     countyInfoText1.append("tspan")
         .attr("x", width - 210)
@@ -430,7 +469,7 @@ function updateInfoBox(countyName, stateAlpha, year, production, yield, producti
     countyInfoText2.append("tspan")
         .attr("x", width - 210)
         .attr("dy", "1.4em")
-        .text(`Production Change: ${productionChange}`);
+        .text(`Production Change: ${productionChangeInMillions}`);
 
     countyInfoText2.append("tspan")
         .attr("x", width - 210)
@@ -563,15 +602,15 @@ function updateMapData(choroplethGroup, data, metric) {
             // Update the information box
             const countyName = d.properties.county_name || 'No name available';
             const stateAlpha = d.properties.state_alpha || 'No state available';
-            const year = d.properties.year || 'No year available';
-            const production = d.properties.rolling_avg_production || 'No data available';
-            const yield = d.properties.rolling_yield || 'No data available';
-            const productionChange = d.properties.rolling_avg_production_abs_change_from_1980 || 'No data available';
-            const yieldChange = d.properties.rolling_yield_abs_change_from_1980 || 'No data available';
-            const avgTemp = d.properties.ann_avg_temp || 'No data available';
-            const avgPrecip = d.properties.ann_avg_precip || 'No data available';
-            const tempChange = d.properties.ann_avg_temp_abs_change_from_1980 || 'No data available';
-            const precipChange = d.properties.ann_avg_precip_abs_change_from_1980 || 'No data available';
+            const year = d.properties.year ?? 'NA';
+            const production = d.properties.rolling_avg_production ?? 'NA';
+            const yield = d.properties.rolling_yield ?? 'NA';
+            const productionChange = d.properties.rolling_avg_production_abs_change_from_1980 ?? 'NA';
+            const yieldChange = d.properties.rolling_yield_abs_change_from_1980 ?? 'NA';
+            const avgTemp = d.properties.ann_avg_temp ?? 'NA';
+            const avgPrecip = d.properties.ann_avg_precip ?? 'NA';
+            const tempChange = d.properties.ann_avg_temp_abs_change_from_1980 ?? 'NA';
+            const precipChange = d.properties.ann_avg_precip_abs_change_from_1980 ?? 'NA';
 
             // Update the information box with all metrics
             updateInfoBox(countyName, stateAlpha, year, production, yield, productionChange, yieldChange, avgTemp, avgPrecip, tempChange, precipChange);
@@ -706,7 +745,7 @@ function createVerticalLegend() {
         group.append("rect")
             .attr("width", legendWidth)
             .attr("height", legendHeight)
-            .attr("fill", "rgba(255, 255, 255, 0.9)")
+            .attr("fill", "rgba(210, 180, 140, 0.95)")
             .attr("stroke", "black")
             .attr("stroke-width", 1);
 
@@ -758,7 +797,7 @@ function createVerticalLegend() {
             legend1Colors = productionColors;
             
             // Second legend - Production Change
-            legend2Title = "Production Change from 1980";
+            legend2Title = "Change in Production";
             legend2Labels = productionChangeLabels;
             legend2Colors = productionChangeColors;
         } else if (currentMetric === 'yield') {
