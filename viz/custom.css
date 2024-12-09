@@ -6,11 +6,11 @@
   padding: 3px;
 }
 body {
-  background-color: #333333;
+  background-color: #483c32;
   color: #ffffee;
 }
 h3.subtitle {
-  color: rgb(253, 141, 60);
+  color: #ffffee;
   text-align: center;
 }
 a {
@@ -24,6 +24,10 @@ a:hover {
   grid-template-columns: 1fr 9fr;
 }
 
+.block {
+  max-width: 1000px; /* Adjust this value as needed */
+ /* Center the text block */
+}
 
 #legend-container {
   margin-left: 20px;  /* Space between the map and the legend */
@@ -42,4 +46,16 @@ a:hover {
   word-wrap: break-word;
   font-family: Arial, sans-serif;
   line-height: 1.5;
+}
+
+ul {
+  list-style-type: disc;
+  margin-left: 2em;
+  color: #ffffee;
+  max-width: 1000px;  /* Same as your body text color */
+}
+
+li {
+  margin-bottom: 0.5em; 
+  max-width: 1000px; /* Add some spacing between list items */
 }

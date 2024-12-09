@@ -76,17 +76,42 @@ using this in favor of our own copy of Bulma/D3/etc. but that can wait.
         
         <div id="map">
           <p class="block">
-            The
-            <a
-              href="https://www.nass.usda.gov/"
-              >National Agricultural Statistics Service</a
-            >
-            publishes data on crop production by county across the United States<br />
-            Below shows the change in the amount of corn produced in each county between 1980 and 2023.
+            The United States leads the world in corn production, consumption, and exports.
+            The Midwest dominates this industry, making corn a cornerstone of the region’s politics, economy, and ecosystem.
+            However, climate change is reshaping the region’s climate and, in turn, how this vital crop is cultivated.
+            Understanding these changes is critical to anticipating future developments in one of the nation’s most influential agricultural sectors.
           </p>
+
+          <p class="block">
+            This project examines regional trends in climate and corn production over the past half-century.
+            By integrating county-level data on corn production and climate metrics, it highlights changes across the Midwest from 1980 to 2023.<br />
+          </p>
+
+          <h2 class="subtitle">Interactive Map Features</h3>
+          <p class="block">
+            The interactive maps below visualize:
+          </p>
+          <ul class="block">
+            <li>Nominal values of corn production, corn yields, annual average temperatures, and monthly average precipitation by county.</li>
+            <li>Relative changes in these metrics, benchmarked against their 1980 values.</li>
+          </ul>
+
+          <h2 class="subtitle">How to Use the Map:</h3>
+          <ul class="block">
+            <li>Use the dropdown in the top-left corner to select a variable of interest.</li>
+            <li>Press the "Play" button to observe how the chosen metric evolves over time.</li>
+            <li>Click on a county to view specific details in the information box. To zoom out, either scroll or use the "Reset View" button.</li>
+          </ul>
+
+          <p class="block">
+            <strong>Dual Map Comparison:</strong> To contextualize the nominal values shown in the first map, the second map displays changes relative to 1980 values.
+            Selecting a county on either map automatically highlights its details on the other, allowing users to compare relative changes with nominal values.<br />
+          </p>
+
           <div class="block">
             <h3 class="subtitle" id="timeDisplay"></h3>
             <div id="controls" style="margin: 10px;"></div>
+            <h3 class="subtitle">Nominal Map</h3>
             <svg id="my_map"> </svg>
             <div id="map_controls">
               <button class="button" id="playPause">Play</button>
@@ -113,6 +138,7 @@ using this in favor of our own copy of Bulma/D3/etc. but that can wait.
             Below shows the change in the amount of corn produced in each county between 1980 and 2023.
           </p>
           <div class="block">
+            <h3 class="subtitle">Change Map (relative to 1980)</h3>
             <svg id="my_map2"> </svg>
           </div>
         </div>

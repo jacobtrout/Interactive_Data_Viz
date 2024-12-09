@@ -334,7 +334,7 @@ function drawBaseLayersForMap(baseGroup, countiesGroup, statesGroup, statesData,
         .data(USAData.features)
         .enter().append("path")
         .attr("class", "usa")
-        .attr("fill", "grey")
+        .attr("fill", "#483c32")
         .attr("stroke", "black")
         .attr("stroke-width", 1)
         .attr("d", path);
@@ -810,7 +810,7 @@ function createVerticalLegend() {
         const temperatureChangeLabels = ["< 0°F", "0 - 0.5°F", "0.5 - 1.0°F", "1.0 - 1.5°F", "1.5 - 2.0°F", "> 2.0°F", "No Data"];
         const temperatureChangeColors = ["#fee5d9", "#fcbba1", "#fc9272", "#fb6a4a", "#de2d26", "#a50f15", "white"];
 
-        const precipitationChangeLabels = ["< 0", "0 - 0.15", "0.15 - 0.3", "0.3 - 0.45", "0.45 - 0.6", "> 0.6", "No Data"];
+        const precipitationChangeLabels = ["< 0\"", "0 - 0.15\"", "0.15 - 0.3\"", "0.3 - 0.45\"", "0.45 - 0.6\"", "> 0.6\"", "No Data"];
         const precipitationChangeColors = ["#deebf7", "#c6dbef", "#9ecae1", "#6baed6", "#3182bd", "#08519c", "white"];
 
         // Get legend config for both maps
@@ -840,7 +840,7 @@ function createVerticalLegend() {
             legend2Colors = yieldChangeColors;
         } else if (currentMetric === 'temperature') {
             // First legend - Temperature
-            legend1Title = "Average Temperature";
+            legend1Title = "Average Temperature (°F)";
             legend1Labels = temperatureLabels;
             legend1Colors = temperatureColors;
             
@@ -850,7 +850,7 @@ function createVerticalLegend() {
             legend2Colors = temperatureChangeColors;
         } else if (currentMetric === 'precipitation') {
             // First legend - Precipitation
-            legend1Title = "Average Precipitation";
+            legend1Title = "Average Precipitation (in)";
             legend1Labels = precipitationLabels;
             legend1Colors = precipitationColors;
             
