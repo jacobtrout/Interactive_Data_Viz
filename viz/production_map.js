@@ -104,7 +104,7 @@ Promise.all([
         .style("right", "20px")
         .style("top", "240px")
         .style("transform-origin", "right")
-        .style("width", "320px")
+        .style("width", "345px")
         .style("z-index", "1000")
         .style("margin-bottom", "25px")
         .style("appearance", "none")
@@ -172,7 +172,7 @@ Promise.all([
         .style("font-weight", "bold")
         .style("color", "black")
         .style("background-color", "rgba(210, 180, 140, 0.95)")
-        .style("padding", "10px 20px")
+        .style("padding", "9px 20px")  // Changed from "5px 20px" to "7px 20px"
         .style("border-radius", "4px")
         .style("border", "1px solid black")
         .style("box-shadow", "0 2px 5px rgba(0,0,0,0.1)")
@@ -291,7 +291,7 @@ Promise.all([
         .style("color", "black")
         .style("cursor", "pointer")
         .style("height", "50px")
-        .style("width", "190px")
+        .style("width", "215px")
         .style("box-shadow", "0 2px 5px rgba(0,0,0,0.1)")
         .style("overflow", "hidden")
         .style("text-overflow", "ellipsis");
