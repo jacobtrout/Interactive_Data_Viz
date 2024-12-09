@@ -67,9 +67,12 @@ using this in favor of our own copy of Bulma/D3/etc. but that can wait.
     <section class="section">
       <div class="container">
         <!-- Add new title section -->
-        <h1 class="title has-text-centered" style="margin-bottom: 2rem;">
-          Changing Climate and Corn Production in the Midwest
+        <h1 class="title">
+          Corn And Climate
         </h1>
+        <h2 class="subtitle">
+          Midwestern Trends Over The Last Half Century
+        </h2>
         
         <div id="map">
           <p class="block">
@@ -110,61 +113,12 @@ using this in favor of our own copy of Bulma/D3/etc. but that can wait.
             Below shows the change in the amount of corn produced in each county between 1980 and 2023.
           </p>
           <div class="block">
-            <h3 class="subtitle" id="timeDisplay"></h3>
-            <div id="controls" style="margin: 10px;"></div>
             <svg id="my_map2"> </svg>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- this creates a second section beneat the first, this one with two columns -->
-    <!-- 
-    <section class="section">
-      <div class="container">
-        <div class="columns">
-          <div class="column">
-            <div class="box">
-              This is column A. This is column A. This is column A. This is
-              column A. This is column A. This is column A. This is column A.
-              This is column A. This is column A. This is column A. This is
-              column A. This is column A. This is column A. This is column A.
-              This is column A. This is column A. This is column A. This is
-              column A. This is column A. This is column A.
-            </div>
-          </div>
-          <div class="column">
-            <div class="box">
-              <p class="title">
-                <img src="#TODO" />
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-    -->
-
-    <!-- This script tag is at the very bottom of the body so that it can reference all of the HTML on the page.
-
-         As mentioned above you can also keep all of your code inside a special event handler that fires after the page loads:
-
-          document.addEventListener("DOMContentLoaded", function(event) { 
-            // everything in here
-          });
-
-        Here, I load the helper functions first, so they will be available
-        for main.js to use.  This is different from Python where files need
-        to import one another.  JS does have that idea, but it is more than
-        you need for single file apps like this one.
-  
-    
-    <script src="utils.js"></script>
-    <script src="linechart.js"></script>
-    <script src="pyramid.js"></script>
-    <script src="map_test copy.js"></script>
-    <script src="main.js"></script>
-  -->
     <script src="production_map.js"></script>
   </body>
 </html>

@@ -807,7 +807,7 @@ function createVerticalLegend() {
             legend1Colors = yieldColors;
             
             // Second legend - Yield Change
-            legend2Title = "Yield Change from 1980";
+            legend2Title = "Change in Yield";
             legend2Labels = yieldChangeLabels;
             legend2Colors = yieldChangeColors;
         } else if (currentMetric === 'temperature') {
@@ -817,7 +817,7 @@ function createVerticalLegend() {
             legend1Colors = temperatureColors;
             
             // Second legend - Temperature Change
-            legend2Title = "Temperature Change from 1980 (°F)";
+            legend2Title = "Change in Temperature";
             legend2Labels = temperatureChangeLabels;
             legend2Colors = temperatureChangeColors;
         } else if (currentMetric === 'precipitation') {
@@ -827,7 +827,7 @@ function createVerticalLegend() {
             legend1Colors = precipitationColors;
             
             // Second legend - Precipitation Change
-            legend2Title = "Precipitation Change from 1980";
+            legend2Title = "Change in Precipitation";
             legend2Labels = precipitationChangeLabels;
             legend2Colors = precipitationChangeColors;
         } else {
