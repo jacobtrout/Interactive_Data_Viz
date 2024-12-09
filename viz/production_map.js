@@ -379,7 +379,7 @@ infoBox1.append("rect")
 let countyInfoText1 = infoBox1.append("text")
     .attr("x", width - 210)
     .attr("y", height - 200)
-    .attr("font-size", "12px")
+    .attr("font-size", "14px")
     .attr("fill", "black")
     .style("pointer-events", "none")
     .style("font-family", "Arial, sans-serif");
@@ -396,7 +396,7 @@ infoBox2.append("rect")
 let countyInfoText2 = infoBox2.append("text")
     .attr("x", width - 210)
     .attr("y", height - 200)
-    .attr("font-size", "12px")
+    .attr("font-size", "14px")
     .attr("fill", "black")
     .style("pointer-events", "none")
     .style("font-family", "Arial, sans-serif");
@@ -405,11 +405,11 @@ let countyInfoText2 = infoBox2.append("text")
 function updateInfoBox(countyName, stateAlpha, year, production, yield, productionChange, yieldChange, avgTemp, avgPrecip, tempChange, precipChange) {
     // Format production to millions with 1 decimal place
     const productionInMillions = production !== 'No data available' 
-        ? `${(production / 1000000).toFixed(1)}M` 
+        ? `${(production / 1000000).toFixed(1)} M` 
         : 'No data available';
     
     const productionChangeInMillions = productionChange !== 'No data available'
-        ? `${(productionChange / 1000000).toFixed(1)}M`
+        ? `${(productionChange / 1000000).toFixed(1)} M`
         : 'No data available';
 
     // Update first info box
@@ -432,12 +432,12 @@ function updateInfoBox(countyName, stateAlpha, year, production, yield, producti
     countyInfoText1.append("tspan")
         .attr("x", width - 210)
         .attr("dy", "1.4em")
-        .text(`5-Year Avg Prod: ${productionInMillions}`);
+        .text(`Production: ${productionInMillions}`);
 
     countyInfoText1.append("tspan")
         .attr("x", width - 210)
         .attr("dy", "1.4em")
-        .text(`5-Year Avg Yield: ${yield}`);
+        .text(`Yield: ${yield}`);
 
     countyInfoText1.append("tspan")
         .attr("x", width - 210)
@@ -469,33 +469,37 @@ function updateInfoBox(countyName, stateAlpha, year, production, yield, producti
     countyInfoText2.append("tspan")
         .attr("x", width - 210)
         .attr("dy", "1.4em")
-        .text(`Production Change: ${productionChangeInMillions}`);
+        .text(`Δ Production: ${productionChangeInMillions}`);
 
     countyInfoText2.append("tspan")
         .attr("x", width - 210)
         .attr("dy", "1.4em")
-        .text(`Yield Change: ${yieldChange}`);
+        .text(`Δ Yield: ${yieldChange}`);
 
     countyInfoText2.append("tspan")
         .attr("x", width - 210)
         .attr("dy", "1.4em")
-        .text(`Temperature Change: ${tempChange}`);
+        .text(`Δ Temperature: ${tempChange}`);
 
     countyInfoText2.append("tspan")
         .attr("x", width - 210)
         .attr("dy", "1.4em")
-        .text(`Precipitation Change: ${precipChange}`);
+        .text(`Δ Precipitation: ${precipChange}`);
 }
 
 // Track last clicked counties for both maps
 let lastClickedCounty1 = null;
 let lastClickedCounty2 = null;
 
+// Add these variables at the top level of your file, near other global variables
+let selectedCountyId = null;
+
+// Modify the updateMap function
 function updateMap(selectedYear) {
     const fileName = `output_data/output_${selectedYear}.geojson`;
     
     d3.json(fileName).then(data => {
-        // Special handling for production, yield, and temperature
+        // Update the maps as before
         if (currentMetric === 'production') {
             updateMapData(choroplethGroup1, data, 'production');
             updateMapData(choroplethGroup2, data, 'production_change');
@@ -509,16 +513,37 @@ function updateMap(selectedYear) {
             updateMapData(choroplethGroup1, data, 'precipitation');
             updateMapData(choroplethGroup2, data, 'precipitation_change');
         } else {
-            // For all other metrics, show the same metric on both maps
             updateMapData(choroplethGroup1, data, currentMetric);
             updateMapData(choroplethGroup2, data, currentMetric);
+        }
+
+        // If there's a selected county, update its info
+        if (selectedCountyId) {
+            const selectedFeature = data.features.find(f => f.properties.id === selectedCountyId);
+            if (selectedFeature) {
+                // Update info boxes with new year's data
+                const d = selectedFeature;
+                const countyName = d.properties.county_name || 'No name available';
+                const stateAlpha = d.properties.state_alpha || 'No state available';
+                const year = d.properties.year ?? 'NA';
+                const production = d.properties.rolling_avg_production ?? 'NA';
+                const yield = d.properties.rolling_yield ?? 'NA';
+                const productionChange = d.properties.rolling_avg_production_abs_change_from_1980 ?? 'NA';
+                const yieldChange = d.properties.rolling_yield_abs_change_from_1980 ?? 'NA';
+                const avgTemp = d.properties.ann_avg_temp ?? 'NA';
+                const avgPrecip = d.properties.ann_avg_precip ?? 'NA';
+                const tempChange = d.properties.ann_avg_temp_abs_change_from_1980 ?? 'NA';
+                const precipChange = d.properties.ann_avg_precip_abs_change_from_1980 ?? 'NA';
+
+                updateInfoBox(countyName, stateAlpha, year, production, yield, productionChange, yieldChange, avgTemp, avgPrecip, tempChange, precipChange);
+            }
         }
     }).catch(error => {
         console.error(`Error loading data for year ${selectedYear}:`, error);
     });
 }
 
-// Helper function to update map data
+// Modify the click handler in updateMapData function to set selectedCountyId
 function updateMapData(choroplethGroup, data, metric) {
     const paths = choroplethGroup.selectAll("path")
         .data(data.features, d => d.properties.id);
@@ -572,6 +597,9 @@ function updateMapData(choroplethGroup, data, metric) {
         .attr("d", path)
         .style("opacity", 0)
         .on("click", function(event, d) {
+            // Set the selected county ID when clicking
+            selectedCountyId = d.properties.id;
+
             // Reset previous highlights on both maps
             if (lastClickedCounty1) {
                 lastClickedCounty1.style("stroke", null).style("stroke-width", null);
