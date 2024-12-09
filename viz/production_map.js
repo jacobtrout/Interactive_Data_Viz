@@ -16,7 +16,7 @@ var svg2 = d3.select("#my_map2")
 // Map and projection
 var projection = d3.geoAlbersUsa()
     .scale(2500)
-    .translate([350, 475]);
+    .translate([315, 475]);
 
 var path = d3.geoPath().projection(projection);
 
@@ -368,8 +368,8 @@ let infoBox2 = svg2.append("g")
     .attr("transform", "translate(0, 0)");
 
 infoBox1.append("rect")
-    .attr("x", width - 220)
-    .attr("y", height - 220)
+    .attr("x", width - 190)
+    .attr("y", height - 170)
     .attr("width", 175)
     .attr("height", 150)
     .attr("fill", "rgba(210, 180, 140, 0.95)")
@@ -377,16 +377,16 @@ infoBox1.append("rect")
     .attr("stroke-width", 1);
 
 let countyInfoText1 = infoBox1.append("text")
-    .attr("x", width - 210)
-    .attr("y", height - 200)
+    .attr("x", width - 180)
+    .attr("y", height - 150)
     .attr("font-size", "14px")
     .attr("fill", "black")
     .style("pointer-events", "none")
     .style("font-family", "Arial, sans-serif");
 
 infoBox2.append("rect")
-    .attr("x", width - 220)
-    .attr("y", height - 220)
+    .attr("x", width - 190)
+    .attr("y", height - 170)
     .attr("width", 175)
     .attr("height", 150)
     .attr("fill", "rgba(210, 180, 140, 0.95)")
@@ -394,8 +394,8 @@ infoBox2.append("rect")
     .attr("stroke-width", 1);
 
 let countyInfoText2 = infoBox2.append("text")
-    .attr("x", width - 210)
-    .attr("y", height - 200)
+    .attr("x", width - 180)
+    .attr("y", height - 150)
     .attr("font-size", "14px")
     .attr("fill", "black")
     .style("pointer-events", "none")
@@ -418,34 +418,34 @@ function updateInfoBox(countyName, stateAlpha, year, production, yield, producti
     
     // Append the title with county and state
     countyInfoText1.append("tspan")
-        .attr("x", width - 210)
+        .attr("x", width - 160)
         .attr("dy", "0em")
         .attr("font-size", "16px")
         .attr("font-weight", "bold")
         .text(`${countyName}, ${stateAlpha}`);
 
     countyInfoText1.append("tspan")
-        .attr("x", width - 210)
+        .attr("x", width - 160)
         .attr("dy", "1.4em")
         .text(`Year: ${year}`);
 
     countyInfoText1.append("tspan")
-        .attr("x", width - 210)
+        .attr("x", width - 160)
         .attr("dy", "1.4em")
         .text(`Production: ${productionInMillions}`);
 
     countyInfoText1.append("tspan")
-        .attr("x", width - 210)
+        .attr("x", width - 160)
         .attr("dy", "1.4em")
         .text(`Yield: ${yield}`);
 
     countyInfoText1.append("tspan")
-        .attr("x", width - 210)
+        .attr("x", width - 160)
         .attr("dy", "1.4em")
         .text(`Temperature: ${avgTemp}`);
 
     countyInfoText1.append("tspan")
-        .attr("x", width - 210)
+        .attr("x", width - 160)
         .attr("dy", "1.4em")
         .text(`Precipitation: ${avgPrecip}`);
 
@@ -455,34 +455,34 @@ function updateInfoBox(countyName, stateAlpha, year, production, yield, producti
     
     // Append the title with county and state
     countyInfoText2.append("tspan")
-        .attr("x", width - 210)
+        .attr("x", width - 160)
         .attr("dy", "0em")
         .attr("font-size", "16px")
         .attr("font-weight", "bold")
         .text(`${countyName}, ${stateAlpha}`);
 
     countyInfoText2.append("tspan")
-        .attr("x", width - 210)
+        .attr("x", width - 160)
         .attr("dy", "1.4em")
         .text(`Year: ${year}`);
 
     countyInfoText2.append("tspan")
-        .attr("x", width - 210)
+        .attr("x", width - 160)
         .attr("dy", "1.4em")
         .text(`Δ Production: ${productionChangeInMillions}`);
 
     countyInfoText2.append("tspan")
-        .attr("x", width - 210)
+        .attr("x", width - 160)
         .attr("dy", "1.4em")
         .text(`Δ Yield: ${yieldChange}`);
 
     countyInfoText2.append("tspan")
-        .attr("x", width - 210)
+        .attr("x", width - 160)
         .attr("dy", "1.4em")
         .text(`Δ Temperature: ${tempChange}`);
 
     countyInfoText2.append("tspan")
-        .attr("x", width - 210)
+        .attr("x", width - 160)
         .attr("dy", "1.4em")
         .text(`Δ Precipitation: ${precipChange}`);
 }
