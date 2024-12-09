@@ -370,6 +370,17 @@ merged.set_geometry("geometry", inplace=True)
 output_df = merged[(merged["year"] >= 1980) & (merged["year"] <= 2023)]
 output_df.set_crs("EPSG:4326", inplace=True)
 
+# Fill missing county_name, state_name, and state_alpha based on available data for the same 'id'
+output_df["county_name"] = output_df.groupby("id")["county_name"].transform(
+    lambda x: x.ffill().bfill()
+)
+output_df["state_name"] = output_df.groupby("id")["state_name"].transform(
+    lambda x: x.ffill().bfill()
+)
+output_df["state_alpha"] = output_df.groupby("id")["state_alpha"].transform(
+    lambda x: x.ffill().bfill()
+)
+
 df = output_df.sort_values(by=["id", "year"])
 
 features = ["rolling_avg_production", "rolling_yield", "ann_avg_temp", "ann_avg_precip"]
