@@ -20,11 +20,9 @@ var projection = d3.geoAlbersUsa()
 
 var path = d3.geoPath().projection(projection);
 
-
 var productionColorScale = d3.scaleThreshold()
     .domain([10000000, 20000000, 30000000, 40000000, 50000000, 60000000])
     .range(d3.schemeGreens[7]);
-
 
 var yieldColorScale = d3.scaleThreshold()
     .domain([35, 70, 105, 140, 175, 210]) 
@@ -97,13 +95,11 @@ Promise.all([
             d3.select(this).style("opacity", "0.7"); 
         });
 
-    // Display the year
     const timeDisplay = d3.select("#timeDisplay")
         .attr("class", "time-display")
 
     timeDisplay.text(`${years[0]}`);
 
-    // Handle year selection via slider
     slider.on("input", function(e) {
         const selectedIndex = +e.target.value;
         const selectedYear = years[selectedIndex];
@@ -115,47 +111,34 @@ Promise.all([
     let currentYearIndex = 0;
     
     d3.select("#playPause").on("click", function() {
-        // Toggle play/pause
+  
         if (playInterval) {
-            clearInterval(playInterval);  // Stop animation
+            clearInterval(playInterval); 
             playInterval = null;
-            this.textContent = "Play";  // Change button text to Play
+            this.textContent = "Play";  
         } else {
             playInterval = setInterval(() => {
-                // Update the slider and map
+                
                 const selectedYear = years[currentYearIndex];
-                slider.property("value", currentYearIndex);  // Dynamically update slider value
+                slider.property("value", currentYearIndex); 
                 updateMap(selectedYear);
                 timeDisplay.text(`${selectedYear}`);
     
-                // Move to the next year
+                
                 currentYearIndex++;
                 if (currentYearIndex >= years.length) {
-                    clearInterval(playInterval);  // Stop the interval when we reach the last year
+                    clearInterval(playInterval);  
                     currentYearIndex = 0;
                     playInterval = null;
-                    this.textContent = "Play";  // Reset button text to Play
+                    this.textContent = "Play";  
                 }
-            }, 500); // Update every second (1000 ms)
-            this.textContent = "Pause";  // Change button text to Pause
+            }, 500);
+            this.textContent = "Pause";  
         }
     });
     
 
     d3.select("#resetZoom")
-        .style("position", "fixed")
-        .style("right", "120px")
-        .style("top", "270px")
-        .style("z-index", "1000")
-        .style("padding", "10px 20px")
-        .style("font-size", "16px")
-        .style("cursor", "pointer")
-        .style("background-color", "rgba(210, 180, 140, 0.95)")
-        .style("color", "black")
-        .style("border", "1px solid black")
-        .style("border-radius", "4px")
-        .style("box-shadow", "0 2px 5px rgba(0,0,0,0.2)")
-        .style("margin-right", "10px")
         .on("mouseover", function() {
             d3.select(this).style("background-color", "rgba(190, 160, 120, 0.95)")
         })
@@ -163,7 +146,6 @@ Promise.all([
             d3.select(this).style("background-color", "rgba(210, 180, 140, 0.95)")
         });
 
-    // Add click handler for reset zoom
     d3.select("#resetZoom").on("click", function() {
         svg1.transition()
             .duration(750)
@@ -174,49 +156,14 @@ Promise.all([
             .call(zoom2.transform, d3.zoomIdentity);
     });
 
-    // Update play button position
     const playButton = d3.select("#playPause")
-        .style("position", "fixed")
-        .style("right", "20px")     // Aligned with slider
-        .style("top", "270px")      // Positioned below slider
-        .style("transform", "none")
-        .style("z-index", "1000")
-        .style("padding", "10px 20px")
-        .style("font-size", "16px")
-        .style("cursor", "pointer")
-        .style("background-color", "rgba(210, 180, 140, 0.95)")
-        .style("color", "black")
-        .style("border", "1px solid black")
-        .style("border-radius", "4px")
-        .style("box-shadow", "0 2px 5px rgba(0,0,0,0.2)")
-        .on("mouseover", function() {
-            d3.select(this).style("background-color", "rgba(190, 160, 120, 0.95)")
-        })
-        .on("mouseout", function() {
-            d3.select(this).style("background-color", "rgba(210, 180, 140, 0.95)")
-        });
+        .attr("class", "play-button");
 
     // Update dropdown position to be next to year display
     const metricSelector = d3.select("#controls")
         .append("select")
         .attr("id", "metricSelector")
-        .style("position", "fixed")
-        .style("right", "150px")
-        .style("top", "180px")
-        .style("z-index", "1000")
-        .style("padding", "10px 10px")
-        .style("font-size", "16px")
-        .style("font-weight", "bold")
-        .style("border-radius", "4px")
-        .style("border", "1px solid black")
-        .style("background-color", "rgba(210, 180, 140, 0.95)")
-        .style("color", "black")
-        .style("cursor", "pointer")
-        .style("height", "50px")
-        .style("width", "215px")
-        .style("box-shadow", "0 2px 5px rgba(0,0,0,0.1)")
-        .style("overflow", "hidden")
-        .style("text-overflow", "ellipsis");
+        .attr("class", "metric-selector");
 
     metricSelector
         .selectAll("option")
