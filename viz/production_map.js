@@ -13,33 +13,31 @@ var svg2 = d3.select("#my_map2")
     .attr("viewBox", `0 0 ${width} ${height}`)
     .style("border", "1px solid black");
 
-// Map and projection
+
 var projection = d3.geoAlbersUsa()
     .scale(2500)
     .translate([315, 475]);
 
 var path = d3.geoPath().projection(projection);
 
-// Add two color scales - one for each metric
+
 var productionColorScale = d3.scaleThreshold()
     .domain([10000000, 20000000, 30000000, 40000000, 50000000, 60000000])
     .range(d3.schemeGreens[7]);
 
-// ... existing code ...
-var yieldColorScale = d3.scaleThreshold()
-    .domain([35, 70, 105, 140, 175, 210]) // Six thresholds creating seven categories up to 250
-    .range(d3.schemeGreens[7]); // Using built-in D3 green color scheme for 7 categories
 
-// Add new color scales for the change metrics
+var yieldColorScale = d3.scaleThreshold()
+    .domain([35, 70, 105, 140, 175, 210]) 
+    .range(d3.schemeGreens[7]); 
+
 var productionChangeColorScale = d3.scaleThreshold()
     .domain([0, 5000000, 10000000, 15000000, 20000000, 30000000])
-    .range(["#ffd700", ...d3.schemeGreens[6]]); // Yellow for negative, then greens for positive values
+    .range(["#ffd700", ...d3.schemeGreens[6]]); 
 
 var yieldChangeColorScale = d3.scaleThreshold()
     .domain([-25, 0, 25, 50, 75, 100, 125])
-    .range(["#ffd700", "#fff7bc", ...d3.schemeGreens[5]]); // Dark yellow, light yellow, then greens
+    .range(["#ffd700", "#fff7bc", ...d3.schemeGreens[5]]); 
 
-// Add new color scales for temperature and precipitation
 var temperatureColorScale = d3.scaleThreshold()
     .domain([40, 45, 50, 55, 60, 65])
     .range(d3.schemeReds[7]);
@@ -48,21 +46,18 @@ var precipitationColorScale = d3.scaleThreshold()
     .domain([0, 1, 2, 3, 4, 5])
     .range(d3.schemeBlues[7]);
 
-// Add new color scales at the top of the file with other scales
 var temperatureChangeColorScale = d3.scaleThreshold()
     .domain([0, 0.5, 1.0, 1.5, 2.0])
-    .range(["#fee5d9", "#fcbba1", "#fc9272", "#fb6a4a", "#de2d26", "#a50f15"]); // Light to dark red
+    .range(["#fee5d9", "#fcbba1", "#fc9272", "#fb6a4a", "#de2d26", "#a50f15"]);
 
 var precipitationChangeColorScale = d3.scaleThreshold()
     .domain([0, 0.15, 0.3, 0.45, 0.6])
-    .range(["#deebf7", "#c6dbef", "#9ecae1", "#6baed6", "#3182bd", "#08519c", "white"]); // Light to dark blues
+    .range(["#deebf7", "#c6dbef", "#9ecae1", "#6baed6", "#3182bd", "#08519c", "white"]);
 
-// Variable to track current metric
 let currentMetric = 'production';
 
-let geojsonData; // To store the full GeoJSON data
+let geojsonData;
 
-// Create groups for each layer for both maps
 const baseCountiesGroup1 = svg1.append("g").attr("class", "base-counties");
 const choroplethGroup1 = svg1.append("g").attr("class", "choropleth");
 const countiesGroup1 = svg1.append("g").attr("class", "counties");
@@ -75,46 +70,26 @@ const statesGroup2 = svg2.append("g").attr("class", "states");
 
 let years = [];
 
-// Load the state and county boundary data
 Promise.all([
-    d3.json("backgrounds/states.geojson"), // Load state boundaries GeoJSON
-    d3.json("backgrounds/counties.geojson"), // Load county boundaries GeoJSON
+    d3.json("backgrounds/states.geojson"),
+    d3.json("backgrounds/counties.geojson"),
     d3.json("backgrounds/all_states.geojson"),
-    d3.json("output_data/output_1980.geojson") // Load data for the first year
+    d3.json("output_data/output_1980.geojson")
 ]).then(([statesData, countiesData, USAData, data]) => {
-    geojsonData = data; // Store the full data for later use
+    geojsonData = data;
 
-    // Extract unique years from the data
     for (let year = 1980; year <= 2023; year++) {
         years.push(year);
     }
 
-    // Draw the base layers (only once)
     drawBaseLayers(statesData, countiesData, USAData);
 
-    // Initialize the map with the first year
     updateMap(years[0]);
 
-    // Set slider values for the years
     const slider = d3.select("#timeSlider")
         .attr("min", 0)
         .attr("max", years.length - 1)
         .property("value", 0)
-        .style("position", "fixed")
-        .style("right", "20px")
-        .style("top", "240px")
-        .style("transform-origin", "right")
-        .style("width", "345px")
-        .style("z-index", "1000")
-        .style("margin-bottom", "25px")
-        .style("appearance", "none")
-        .style("-webkit-appearance", "none")
-        .style("background", "#d3d3d3")
-        .style("height", "5px")
-        .style("border-radius", "5px")
-        .style("outline", "none")
-        .style("opacity", "0.7")
-        .style("transition", "opacity .2s")
         .on("mouseover", function() { 
             d3.select(this).style("opacity", "1"); 
         })
@@ -122,62 +97,9 @@ Promise.all([
             d3.select(this).style("opacity", "0.7"); 
         });
 
-    // Style the slider thumb (the draggable part)
-    const thumbStyle = `
-        #timeSlider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 15px;
-            height: 15px;
-            background: #4CAF50;
-            cursor: pointer;
-            border-radius: 50%;
-        }
-        #timeSlider::-moz-range-thumb {
-            width: 15px;
-            height: 15px;
-            background: #4CAF50;
-            cursor: pointer;
-            border-radius: 50%;
-            border: none;
-        }
-    `;
-
-    // Add the styles to the document
-    const styleSheet = document.createElement("style");
-    styleSheet.innerText = thumbStyle;
-    document.head.appendChild(styleSheet);
-
-    // Create labels for specific years only (start, middle, end)
-    const yearLabels = [1980, 2000, 2023];
-
-    slider.selectAll("span")
-        .data(yearLabels)
-        .enter()
-        .append("span")
-        .style("position", "relative")
-        .style("text-align", "right")
-        .style("font-size", "12px")
-        .style("color", "white")
-        .text(d => d);
-
     // Display the year
     const timeDisplay = d3.select("#timeDisplay")
-        .style("position", "fixed")
-        .style("right", "20px")
-        .style("top", "180px")
-        .style("transform", "none")
-        .style("z-index", "1000")
-        .style("font-size", "24px")
-        .style("font-weight", "bold")
-        .style("color", "black")
-        .style("background-color", "rgba(210, 180, 140, 0.95)")
-        .style("padding", "9px 20px")  // Changed from "5px 20px" to "7px 20px"
-        .style("border-radius", "4px")
-        .style("border", "1px solid black")
-        .style("box-shadow", "0 2px 5px rgba(0,0,0,0.1)")
-        .style("width", "120px")
-        .style("text-align", "center");
+        .attr("class", "time-display")
 
     timeDisplay.text(`${years[0]}`);
 
@@ -219,7 +141,7 @@ Promise.all([
         }
     });
     
-    // Style and position the reset zoom button
+
     d3.select("#resetZoom")
         .style("position", "fixed")
         .style("right", "120px")
@@ -319,7 +241,6 @@ Promise.all([
 
     console.log("Sample data properties:", data.features[0].properties);
 });
-
 // Function to draw the base layers on the map
 function drawBaseLayers(statesData, countiesData, USAData) {
     // Draw for first map
