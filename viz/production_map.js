@@ -159,7 +159,6 @@ Promise.all([
     const playButton = d3.select("#playPause")
         .attr("class", "play-button");
 
-    // Update dropdown position to be next to year display
     const metricSelector = d3.select("#controls")
         .append("select")
         .attr("id", "metricSelector")
