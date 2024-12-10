@@ -178,7 +178,6 @@ Promise.all([
         .attr("value", d => d.value)
         .text(d => d.text);
 
-    // Add event listener for dropdown
     metricSelector.on("change", function() {
         currentMetric = this.value;
         const selectedYear = years[d3.select("#timeSlider").property("value")];
@@ -186,17 +185,15 @@ Promise.all([
         updateLegend();
     });
 
-    console.log("Sample data properties:", data.features[0].properties);
 });
-// Function to draw the base layers on the map
+
 function drawBaseLayers(statesData, countiesData, USAData) {
-    // Draw for first map
+
     drawBaseLayersForMap(baseCountiesGroup1, countiesGroup1, statesGroup1, statesData, countiesData, USAData);
-    // Draw for second map
+
     drawBaseLayersForMap(baseCountiesGroup2, countiesGroup2, statesGroup2, statesData, countiesData, USAData);
 }
 
-// Helper function to draw layers for a specific map
 function drawBaseLayersForMap(baseGroup, countiesGroup, statesGroup, statesData, countiesData, USAData) {
     baseGroup.selectAll("path.usa")
         .data(USAData.features)
@@ -207,7 +204,6 @@ function drawBaseLayersForMap(baseGroup, countiesGroup, statesGroup, statesData,
         .attr("stroke-width", 1)
         .attr("d", path);
 
-    // Draw county boundaries
     countiesGroup.selectAll("path")
         .data(countiesData.features)
         .enter().append("path")
@@ -216,7 +212,6 @@ function drawBaseLayersForMap(baseGroup, countiesGroup, statesGroup, statesData,
         .attr("stroke-width", 1)
         .attr("d", path);
 
-    // Draw state boundaries
     statesGroup.selectAll("path")
         .data(statesData.features)
         .enter().append("path")
@@ -226,7 +221,6 @@ function drawBaseLayersForMap(baseGroup, countiesGroup, statesGroup, statesData,
         .attr("d", path);
 }
 
-// Create info boxes for both maps
 let infoBox1 = svg1.append("g")
     .attr("class", "info-box")
     .attr("transform", "translate(0, 0)");
@@ -269,9 +263,8 @@ let countyInfoText2 = infoBox2.append("text")
     .style("pointer-events", "none")
     .style("font-family", "Arial, sans-serif");
 
-// Update the information box with proper line breaks
 function updateInfoBox(countyName, stateAlpha, year, production, yield, productionChange, yieldChange, avgTemp, avgPrecip, tempChange, precipChange) {
-    // Format production to millions with 1 decimal place
+
     const productionInMillions = production !== 'No data available' 
         ? `${(production / 1000000).toFixed(1)} M` 
         : 'No data available';
@@ -280,11 +273,9 @@ function updateInfoBox(countyName, stateAlpha, year, production, yield, producti
         ? `${(productionChange / 1000000).toFixed(1)} M`
         : 'No data available';
 
-    // Update first info box
     countyInfoText1
-        .selectAll("*").remove();  // Remove any existing text
-    
-    // Append the title with county and state
+        .selectAll("*").remove();  
+
     countyInfoText1.append("tspan")
         .attr("x", width - 160)
         .attr("dy", "0em")
@@ -317,11 +308,9 @@ function updateInfoBox(countyName, stateAlpha, year, production, yield, producti
         .attr("dy", "1.4em")
         .text(`Precipitation: ${avgPrecip}`);
 
-    // Update second info box
     countyInfoText2
-        .selectAll("*").remove();  // Remove any existing text
+        .selectAll("*").remove(); 
     
-    // Append the title with county and state
     countyInfoText2.append("tspan")
         .attr("x", width - 160)
         .attr("dy", "0em")
@@ -355,19 +344,14 @@ function updateInfoBox(countyName, stateAlpha, year, production, yield, producti
         .text(`Δ Precipitation: ${precipChange}`);
 }
 
-// Track last clicked counties for both maps
 let lastClickedCounty1 = null;
 let lastClickedCounty2 = null;
-
-// Add these variables at the top level of your file, near other global variables
 let selectedCountyId = null;
 
-// Modify the updateMap function
 function updateMap(selectedYear) {
     const fileName = `output_data/output_${selectedYear}.geojson`;
     
     d3.json(fileName).then(data => {
-        // Update the maps as before
         if (currentMetric === 'production') {
             updateMapData(choroplethGroup1, data, 'production');
             updateMapData(choroplethGroup2, data, 'production_change');
@@ -385,11 +369,9 @@ function updateMap(selectedYear) {
             updateMapData(choroplethGroup2, data, currentMetric);
         }
 
-        // If there's a selected county, update its info
         if (selectedCountyId) {
             const selectedFeature = data.features.find(f => f.properties.id === selectedCountyId);
             if (selectedFeature) {
-                // Update info boxes with new year's data
                 const d = selectedFeature;
                 const countyName = d.properties.county_name || 'No name available';
                 const stateAlpha = d.properties.state_alpha || 'No state available';
@@ -402,7 +384,6 @@ function updateMap(selectedYear) {
                 const avgPrecip = d.properties.ann_avg_precip ?? 'NA';
                 const tempChange = d.properties.ann_avg_temp_abs_change_from_1980 ?? 'NA';
                 const precipChange = d.properties.ann_avg_precip_abs_change_from_1980 ?? 'NA';
-
                 updateInfoBox(countyName, stateAlpha, year, production, yield, productionChange, yieldChange, avgTemp, avgPrecip, tempChange, precipChange);
             }
         }
@@ -411,12 +392,10 @@ function updateMap(selectedYear) {
     });
 }
 
-// Modify the click handler in updateMapData function to set selectedCountyId
 function updateMapData(choroplethGroup, data, metric) {
     const paths = choroplethGroup.selectAll("path")
         .data(data.features, d => d.properties.id);
 
-    // Update existing paths
     paths
         .transition()
         .duration(750)
@@ -458,17 +437,14 @@ function updateMapData(choroplethGroup, data, metric) {
             }
         });
 
-    // Add new paths with modified click handler
     paths.enter()
         .append("path")
         .attr("fill", "white")
         .attr("d", path)
         .style("opacity", 0)
         .on("click", function(event, d) {
-            // Set the selected county ID when clicking
             selectedCountyId = d.properties.id;
 
-            // Reset previous highlights on both maps
             if (lastClickedCounty1) {
                 lastClickedCounty1.style("stroke", null).style("stroke-width", null);
                 lastClickedCounty1.style("fill", null);
@@ -478,24 +454,20 @@ function updateMapData(choroplethGroup, data, metric) {
                 lastClickedCounty2.style("fill", null);
             }
 
-            // Find and highlight the same county in both maps
             const countyId = d.properties.id;
             const map1County = choroplethGroup1.selectAll("path")
                 .filter(d => d.properties.id === countyId);
             const map2County = choroplethGroup2.selectAll("path")
                 .filter(d => d.properties.id === countyId);
 
-            // Highlight both counties
             map1County.style("stroke", "orange").style("stroke-width", 3);
             map1County.style("fill", "orange");
             map2County.style("stroke", "orange").style("stroke-width", 3);
             map2County.style("fill", "orange");
 
-            // Store the clicked counties
             lastClickedCounty1 = map1County;
             lastClickedCounty2 = map2County;
 
-            // Update the information box
             const countyName = d.properties.county_name || 'No name available';
             const stateAlpha = d.properties.state_alpha || 'No state available';
             const year = d.properties.year ?? 'NA';
@@ -508,10 +480,8 @@ function updateMapData(choroplethGroup, data, metric) {
             const tempChange = d.properties.ann_avg_temp_abs_change_from_1980 ?? 'NA';
             const precipChange = d.properties.ann_avg_precip_abs_change_from_1980 ?? 'NA';
 
-            // Update the information box with all metrics
             updateInfoBox(countyName, stateAlpha, year, production, yield, productionChange, yieldChange, avgTemp, avgPrecip, tempChange, precipChange);
             
-            // Zoom both maps to the clicked county
             zoomToCounty(event, d);
         })
         .transition()
@@ -555,7 +525,6 @@ function updateMapData(choroplethGroup, data, metric) {
             }
         });
 
-    // Remove old paths
     paths.exit()
         .transition()
         .duration(750)
@@ -563,11 +532,9 @@ function updateMapData(choroplethGroup, data, metric) {
         .remove();
 }
 
-// Set up zoom behavior for both maps
 const zoom1 = setupZoom(svg1, [baseCountiesGroup1, choroplethGroup1, countiesGroup1, statesGroup1]);
 const zoom2 = setupZoom(svg2, [baseCountiesGroup2, choroplethGroup2, countiesGroup2, statesGroup2]);
 
-// Helper function to set up zoom
 function setupZoom(svg, layers) {
     const zoom = d3.zoom()
         .scaleExtent([1, 8])
@@ -584,14 +551,12 @@ function setupZoom(svg, layers) {
     return zoom;
 }
 
-// Function to reset zoom
 function resetZoom() {
     svg1.transition()
         .duration(750)
         .call(zoom1.transform, d3.zoomIdentity);
 }
 
-// Update zoomToCounty to zoom both maps
 function zoomToCounty(event, d) {
     const bounds = path.bounds(d);
     const dx = bounds[1][0] - bounds[0][0];
@@ -605,7 +570,6 @@ function zoomToCounty(event, d) {
     translate[0] = Math.min(0, Math.max(width * (1 - scale), translate[0]));
     translate[1] = Math.min(0, Math.max(height * (1 - scale), translate[1]));
     
-    // Zoom both maps
     svg1.transition()
         .duration(750)
         .call(zoom1.transform, d3.zoomIdentity
@@ -620,14 +584,12 @@ function zoomToCounty(event, d) {
 }
 
 function createVerticalLegend() {
-    // Set up smaller legend dimensions
     const legendWidth = 200;
     const legendHeight = 190;
     const legendItemHeight = 15;
     const legendSpacing = 5;
     const titleHeight = 20;
 
-    // Create legend groups for both maps
     const legendGroup1 = svg1.append("g")
         .attr("class", "legend")
         .attr("transform", `translate(${width - legendWidth - 20}, 20)`);
@@ -636,7 +598,6 @@ function createVerticalLegend() {
         .attr("class", "legend")
         .attr("transform", `translate(${width - legendWidth - 20}, 20)`);
 
-    // Add backgrounds for both legends
     [legendGroup1, legendGroup2].forEach(group => {
         group.append("rect")
             .attr("width", legendWidth)
@@ -656,7 +617,6 @@ function createVerticalLegend() {
     });
 
     function updateLegend() {
-        // Create legend data for all metrics
         const productionLabels = ["0 - 10M", "10M - 20M", "20M - 30M", "30M - 40M", "40M - 50M", "50M - 60M", "> 60M", "No Data"];
         const productionColors = [...d3.schemeGreens[7], "white"];
         
@@ -681,54 +641,42 @@ function createVerticalLegend() {
         const precipitationChangeLabels = ["< 0\"", "0 - 0.15\"", "0.15 - 0.3\"", "0.3 - 0.45\"", "0.45 - 0.6\"", "> 0.6\"", "No Data"];
         const precipitationChangeColors = ["#deebf7", "#c6dbef", "#9ecae1", "#6baed6", "#3182bd", "#08519c", "white"];
 
-        // Get legend config for both maps
         let legend1Title, legend1Labels, legend1Colors;
         let legend2Title, legend2Labels, legend2Colors;
-
-        // Special handling for production, yield, and temperature
         if (currentMetric === 'production') {
-            // First legend - Production
             legend1Title = "Production (bushels)";
             legend1Labels = productionLabels;
             legend1Colors = productionColors;
             
-            // Second legend - Production Change
             legend2Title = "Change in Production";
             legend2Labels = productionChangeLabels;
             legend2Colors = productionChangeColors;
         } else if (currentMetric === 'yield') {
-            // First legend - Yield
             legend1Title = "Yield (bushels/acre)";
             legend1Labels = yieldLabels;
             legend1Colors = yieldColors;
             
-            // Second legend - Yield Change
             legend2Title = "Change in Yield";
             legend2Labels = yieldChangeLabels;
             legend2Colors = yieldChangeColors;
         } else if (currentMetric === 'temperature') {
-            // First legend - Temperature
             legend1Title = "Average Temperature (°F)";
             legend1Labels = temperatureLabels;
             legend1Colors = temperatureColors;
             
-            // Second legend - Temperature Change
             legend2Title = "Change in Temperature";
             legend2Labels = temperatureChangeLabels;
             legend2Colors = temperatureChangeColors;
         } else if (currentMetric === 'precipitation') {
-            // First legend - Precipitation
             legend1Title = "Average Precipitation (in)";
             legend1Labels = precipitationLabels;
             legend1Colors = precipitationColors;
             
-            // Second legend - Precipitation Change
             legend2Title = "Change in Precipitation";
             legend2Labels = precipitationChangeLabels;
             legend2Colors = precipitationChangeColors;
         }
 
-        // Update titles and legends
         legendGroup1.select(".legend-title")
             .text(legend1Title)
             .style("font-size", "16px");
@@ -742,10 +690,8 @@ function createVerticalLegend() {
     }
 
     function updateSingleLegend(group, labels, colors) {
-        // Remove existing legend items
         group.selectAll(".legend-item").remove();
 
-        // Create new legend items
         const legendItems = group.selectAll(".legend-item")
             .data(labels)
             .enter()
@@ -753,7 +699,6 @@ function createVerticalLegend() {
             .attr("class", "legend-item")
             .attr("transform", (d, i) => `translate(10, ${25 + i * (legendItemHeight + legendSpacing)})`);
 
-        // Add colored rectangle for each legend item
         legendItems.append("rect")
             .attr("width", 15)
             .attr("height", legendItemHeight)
@@ -761,7 +706,6 @@ function createVerticalLegend() {
             .attr("stroke", "black")
             .attr("stroke-width", 0.5);
 
-        // Add label for each legend item
         legendItems.append("text")
             .attr("x", 20)
             .attr("y", legendItemHeight / 2)
@@ -771,11 +715,9 @@ function createVerticalLegend() {
             .text(d => d);
     }
 
-    // Initial legend creation
     updateLegend();
 
     return updateLegend;
 }
 
-// Store the updateLegend function when creating the legend
 const updateLegend = createVerticalLegend();
