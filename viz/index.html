@@ -1,33 +1,6 @@
-<!--
-The author grants you a license to use this template under the conditions:
-
-    1) You MUST remove the tutorial comments.
-       I recommend doing so as you read/understand them.
-    2) You SHOULD make an attempt to customize this, 
-       it's in everyone's best interest that you work to make
-       your final product visually distinct.
-
-There are two ways to get started w/ an HTML project:
-
-- You can pick a complex template that already has lots of content and pare it
-  down/adapt it to your needs. (Think woodcarving.)
-- You can start with a simple template and only add what you need. (Think LEGO.)
-
-I prefer to build up, but if you pick a more complex starting template the process won't differ much.
-You'll just have more to potentially remove, and you'll still do a bit of building.
-
-In the case of this template, I went to this page <https://bulma.io/documentation/start/overview/>
-and took the 20-line HTML template that they offer.
-
-This template links to the Bulma CSS file on a CDN, Content Delivery Network.
-This is a service that hosts commonly used CSS and JS libraries. For final deployment, we will probably want to stop
-using this in favor of our own copy of Bulma/D3/etc. but that can wait.
-
--->
 <!doctype html>
 <html>
   <head>
-    <!-- these ensure the page displays properly on all devices, most HTML files include these tags -->
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>
@@ -37,31 +10,10 @@ using this in favor of our own copy of Bulma/D3/etc. but that can wait.
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css"
     />
-    <!-- load a custom CSS file from the same directory that this file is in -->
     <link rel="stylesheet" href="custom.css" />
-
-    <style type="text/css">
-      /* custom styles could also go here, sometimes I add some here while experimenting */
-    </style>
-    <!--
-       This was not in the bulma template, but I have added it here, this uses D3 from a CDN.
-       We will replace it as well.
-    -->
     <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
     <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
     <script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
-    <!-- 
-      Additional HTML and CSS would go here in the <head>.
-    
-      Either using links as seen above, or with <style></style> for inline CSS.
-      
-      Inline <script> tags often go in the body, so that the elements that they
-      reference already exist.
-      It is possible to have your code wait for the HTML to load before running as well,
-      but this is a simpler approach.
-
-      See the <script> tag at the bottom of this page for more detail.
-    -->
   </head>
   <body>
     <section class="section">
@@ -108,7 +60,7 @@ using this in favor of our own copy of Bulma/D3/etc. but that can wait.
 
           <h2 class="subtitle">How to Use the Map:</h3>
           <ul class="block">
-            <li>Use the dropdown in the top-left corner to select a variable of interest.</li>
+            <li>Use the dropdown in the top-right corner to select a variable of interest.</li>
             <li>Press the "Play" button to observe how the chosen metric evolves over time.</li>
             <li>Click on a county to view specific details in the information box. To zoom out, either scroll or use the "Reset View" button.</li>
           </ul>
