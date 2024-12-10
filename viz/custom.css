@@ -1,6 +1,4 @@
-#pyramids {
-  width: 700px;
-}
+
 .inverted {
   background-color: #ffffee;
   padding: 3px;
@@ -13,32 +11,19 @@ h3.subtitle {
   color: #ffffee;
   text-align: center;
 }
-a {
-  color: rgb(253, 141, 60);
-}
-a:hover {
-  text-decoration: underline;
-}
-#pyramidControls {
-  display: grid;
-  grid-template-columns: 1fr 9fr;
-}
 
 .block {
-  max-width: 1000px; /* Adjust this value as needed */
- /* Center the text block */
+  max-width: 1000px; 
 }
 
 #legend-container {
-  margin-left: 20px;  /* Space between the map and the legend */
-  width: 250px;       /* Width of the legend */
+  margin-left: 20px;  
+  width: 250px;       
 }
 
-
-
 #legend {
-  width: 200px;       /* Adjust the legend size */
-  height: auto;       /* Allow the legend to scale vertically */
+  width: 200px;       
+  height: auto;       
 }
 
 #countyInfoText {
@@ -52,10 +37,10 @@ ul {
   list-style-type: disc;
   margin-left: 2em;
   color: #ffffee;
-  max-width: 1000px;  /* Same as your body text color */
+  max-width: 1000px;  /
 }
 
 li {
   margin-bottom: 0.5em; 
-  max-width: 1000px; /* Add some spacing between list items */
+  max-width: 1000px; 
 }
