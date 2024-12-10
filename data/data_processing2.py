@@ -408,3 +408,16 @@ for year in output_df["year"].unique():
     year_df = output_df[output_df["year"] == year]
     year_filename = os.path.join(f"{OUTPUT_PATH}output_data", f"output_{year}.geojson")
     year_df.to_file(year_filename, driver="GeoJSON")
+
+# Save background files
+midwest_counties_gdf.set_crs("EPSG:4326", inplace=True)
+midwest_counties_gdf.to_file(
+    f"{OUTPUT_PATH}backgrounds/counties.geojson", driver="GeoJSON"
+)
+
+midwest_states_gdf = states_gdf[states_gdf["id"].astype(int).isin(MIDWESTERN_STATE_IDS)]
+midwest_states_gdf.set_crs("EPSG:4326", inplace=True)
+midwest_states_gdf.to_file(f"{OUTPUT_PATH}backgrounds/states.geojson", driver="GeoJSON")
+
+states_gdf.set_crs("EPSG:4326", inplace=True)
+states_gdf.to_file(f"{OUTPUT_PATH}backgrounds/all_states.geojson", driver="GeoJSON")
