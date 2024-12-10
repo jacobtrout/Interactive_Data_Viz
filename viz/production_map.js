@@ -22,7 +22,7 @@ var path = d3.geoPath().projection(projection);
 
 // Add two color scales - one for each metric
 var productionColorScale = d3.scaleThreshold()
-    .domain([0, 10000000, 20000000, 30000000, 40000000, 50000000, 60000000])
+    .domain([10000000, 20000000, 30000000, 40000000, 50000000, 60000000])
     .range(d3.schemeGreens[7]);
 
 // ... existing code ...
