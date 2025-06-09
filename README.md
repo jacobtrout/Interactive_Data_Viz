@@ -1,18 +1,30 @@
 # Interactive_Data_Viz
 
-## Author: 
+## Author  
 Jacob Trout
 
-## Description: 
-This project explores the relationship between agricultural and climate changes in the midwest. The website is a interactive map that allows the user to explore the relationship between agricultural and climate changes in the midwest. The website is built with d3.js and is hosted on netlify. 
+## Description  
+This project explores the relationship between agricultural productivity and climate change in the U.S. Midwest. The core deliverable is an interactive website that visualizes these trends at the county level.
 
-## Screen Shot: 
-see pdf. File is too large for a screen shot
+The site allows users to explore how long-term changes in temperature and precipitation relate to crop yield trends using interactive maps and graphs.
 
-## Data:
-Agricultural Data comes from USDA National Agricultural Statistics Service's Quick Stats Database. It is open for public usage. I retrieved my data via an API.
+The website is built with **D3.js** and hosted on **Netlify**.  
+👉 **Live site:** [https://cornandclimate.netlify.app](https://cornandclimate.netlify.app)
 
-Climate data comes from the National Centers for Environmental Information's Climate Data Online system. It is also open for public use. 
+## Screenshot  
+See accompanying PDF. The file is too large for a static screenshot.
 
-To generate the data used by the map, the user must execute the 'data_processing.py' file. This file will generate the geojson files and place them in the viz folder. 
+## Data Sources  
+- **Agricultural data:** USDA National Agricultural Statistics Service (Quick Stats API)  
+- **Climate data:** NOAA's National Centers for Environmental Information (Climate Data Online)
 
+Both sources are open and publicly accessible.
+
+## How to Reproduce the Data  
+Run `data_processing.py` to generate the necessary GeoJSON files. These will be saved in the `viz` folder and are required for the map to render properly.
+
+## License  
+This project is open source under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## Contributions  
+Feel free to fork the repository, submit issues, or open pull requests. Suggestions for new features or data so
