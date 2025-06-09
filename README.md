@@ -1,4 +1,4 @@
-# CornandClimate
+# Corn and Climate
 
 ## Author  
 Jacob Trout
