@@ -1,4 +1,4 @@
-# Interactive_Data_Viz
+# CornandClimate
 
 ## Author  
 Jacob Trout
